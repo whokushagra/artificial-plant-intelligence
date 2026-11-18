@@ -103,7 +103,7 @@ svg#lines circle{fill:#fff}
 .stag:before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);margin-right:8px;vertical-align:middle}
 .stag.on{opacity:1}
 /* module panels */
-.modp{position:absolute;right:clamp(16px,4vw,72px);top:30vh;width:min(330px,30vw);opacity:0;transform:translateY(14px);filter:blur(4px);transition:opacity .7s,transform .9s cubic-bezier(.2,.7,.1,1),filter .7s;
+.modp{position:absolute;right:clamp(16px,9vw,170px);top:30vh;width:min(330px,30vw);opacity:0;transform:translateY(14px);filter:blur(4px);transition:opacity .7s,transform .9s cubic-bezier(.2,.7,.1,1),filter .7s;
   border:1px solid var(--faint);background:rgba(3,6,5,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:16px 16px 14px}
 .modp.on{opacity:1;transform:none;filter:none}
 .modp .ph{color:var(--green);margin-bottom:12px}
@@ -156,6 +156,27 @@ svg#lines circle{fill:#fff}
 #face path{fill:none;stroke:#46e08a;stroke-width:.014;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(70,224,138,.7));stroke-dasharray:1;stroke-dashoffset:1}
 #flow{animation:talk 1.1s ease-in-out infinite;transform-box:view-box}
 @keyframes talk{0%,100%{transform:translateY(0)}35%{transform:translateY(.05px)}50%{transform:translateY(.05px)}}
+/* ---- step 10: the real interface, dark ---- */
+#talkui{--tbg:#050706;--tline:#4FB574;--ttext:#9fd6b0;--tsize:20px;--tlines:4;--tbtn:64px;--tgap:22px;
+  --twordsH:calc(var(--tlines)*1.45*var(--tsize));--tbottomH:calc(var(--twordsH) + var(--tbtn) + 3*var(--tgap));
+  position:fixed;inset:0;z-index:8;background:var(--tbg);opacity:0;visibility:hidden;transition:opacity .9s ease,visibility 0s linear .9s}
+#talkui.on{opacity:1;visibility:visible;transition:opacity .9s ease}
+#tface{position:absolute;left:0;right:0;top:0;width:100%;height:calc(100% - var(--tbottomH));overflow:visible}
+#tbottom{position:absolute;left:0;right:0;bottom:0;height:var(--tbottomH);display:flex;flex-direction:column;align-items:center;gap:var(--tgap);padding:var(--tgap) 24px var(--tgap);pointer-events:none}
+#twords{width:min(86vw,640px);height:var(--twordsH);overflow:hidden;display:flex;align-items:flex-end;justify-content:center;text-align:center;font:400 var(--tsize)/1.45 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;color:var(--ttext)}
+#ttalk{pointer-events:auto;flex:none;width:var(--tbtn);height:var(--tbtn);border-radius:50%;padding:0;cursor:pointer;border:4px solid var(--tline);background:var(--tbg);transition:background .2s,transform .15s}
+#ttalk::after{content:'';display:block;width:32%;height:32%;margin:auto;border-radius:50%;background:var(--tline);transition:transform .2s,background .2s}
+#ttalk[data-state="listening"]{background:var(--tline)}#ttalk[data-state="listening"]::after{background:var(--tbg);transform:scale(1.3)}
+#ttalk:active{transform:scale(.94)}
+#tmusic,#tclose{position:absolute;top:16px;font:500 13px/1 ui-rounded,"SF Pro Rounded",system-ui,sans-serif;letter-spacing:.02em;color:var(--tline);background:transparent;border:1.5px solid var(--tline);border-radius:999px;padding:7px 13px;opacity:.6;cursor:pointer;transition:opacity .2s,background .2s,color .2s}
+#tmusic{right:16px}#tclose{left:16px;width:34px;height:34px;padding:0;display:grid;place-items:center;font-size:14px}
+#tmusic:hover,#tclose:hover{opacity:1}
+#tmusic[aria-pressed="true"]{background:var(--tline);color:var(--tbg);opacity:.9}
+#tnote{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);color:var(--tline);opacity:0;transition:opacity .4s;font-size:10px}
+#tnote.on{opacity:.7}
+.wl{fill:rgba(238,242,239,.4);font:400 8px 'JetBrains Mono';letter-spacing:.14em;text-transform:uppercase}
+.wl.wn{fill:#b6f08a}
+
 @media (max-width:760px){.steps{width:auto;right:16px;top:auto;bottom:16px}.st:not(.on){display:none}.modp{display:none}}
 
 @media (max-width:760px){
@@ -175,6 +196,13 @@ body.snap *{transition:none!important}
 <svg id="lines"></svg>
 <div class="top mono"><span>Project Venus</span><span id="chap">Artificial Plant Intelligence</span><span id="num">00</span></div>
 <nav id="rail"></nav>
+<div id="talkui" aria-hidden="true">
+  <button id="tclose" aria-label="Skip to the next part">✕</button>
+  <button id="tmusic" aria-pressed="false">Music</button>
+  <svg id="tface" preserveAspectRatio="xMidYMax meet" aria-label="The plant's face"></svg>
+  <div id="tbottom"><div id="twords" aria-live="polite"></div><button id="ttalk" data-state="idle" aria-label="Talk to the plant"></button></div>
+  <div id="tnote" class="mono">Live conversation · coming soon</div>
+</div>
 
 <div id="ui">
   <!-- 0 HERO -->
@@ -227,7 +255,7 @@ body.snap *{transition:none!important}
   <div class="blk steps" data-s="how" data-a=".01" data-b="1.01" id="steps">
     <div class="st"><div class="n">01</div><div class="bd"><div class="t">Sense</div><p>It feels its world. We look inside the plant: every sense becomes a line of light.</p><div class="tech">Five live channels · light · soil moisture · air &amp; root temperature · humidity</div></div></div>
     <div class="st"><div class="n">02</div><div class="bd"><div class="t">Signal</div><p>Many feelings braid into one signal, like nerves into a spine.</p><div class="tech">Edge microcontroller · streams telemetry every 2 s</div></div></div>
-    <div class="st"><div class="n">03</div><div class="bd"><div class="t">The seed</div><p>Everything flows into its mind. Not a box, not a human brain. A seed.</p><div class="tech">The plant's own brain · where every step below happens</div></div></div>
+    <div class="st"><div class="n">03</div><div class="bd"><div class="t">The brain</div><p>Everything flows into its mind. Not a box, not a human brain. A seed.</p><div class="tech">The plant's own brain · where every step below happens</div></div></div>
     <div class="st"><div class="n">04</div><div class="bd"><div class="t">Memory</div><p>It remembers. Every reading is written down and kept.</p><div class="tech">Continuous logging · a living timeline of its days</div></div></div>
     <div class="st"><div class="n">05</div><div class="bd"><div class="t">Judge</div><p>It makes sense of each feeling, one sense at a time.</p><div class="tech">Neural classifiers · one trained judge per sense, taught on plant-science ranges</div></div></div>
     <div class="st"><div class="n">06</div><div class="bd"><div class="t">World</div><p>It knows its place in time: day or night, the weather, the season.</p><div class="tech">Context engine · time of day · weather · seasonal rhythm</div></div></div>
@@ -236,12 +264,6 @@ body.snap *{transition:none!important}
     <div class="st"><div class="n">09</div><div class="bd"><div class="t">Voice</div><p>It finds the words, and listens back.</p><div class="tech">On-device language model · speech in, voice out · fully local</div></div></div>
     <div class="st"><div class="n">10</div><div class="bd"><div class="t">And it talks back.</div><p>The seed becomes a face.</p></div></div>
   </div>
-  <!-- sense tags -->
-  <div class="stag mono" data-k="0" style="--c:#ffd24a">Light</div>
-  <div class="stag mono" data-k="1" style="--c:#4aa8ff">Soil moisture</div>
-  <div class="stag mono" data-k="2" style="--c:#ff8a3a">Root temperature</div>
-  <div class="stag mono" data-k="3" style="--c:#ff5f8a">Air temperature</div>
-  <div class="stag mono" data-k="4" style="--c:#5ff0d0">Humidity</div>
   <!-- module panels (one at a time) -->
   <div class="modp mono" data-m="0">
     <div class="ph">▸ Memory · writing</div>
@@ -270,13 +292,26 @@ body.snap *{transition:none!important}
   </div>
   <div class="modp mono" data-m="2">
     <div class="ph">▸ World · time · weather · season</div>
-    <svg class="wsvg" viewBox="0 0 300 130">
-      <line x1="10" y1="104" x2="290" y2="104" stroke="rgba(238,242,239,.3)"/>
-      <path id="arc" d="M30 104 A120 86 0 0 1 270 104" fill="none" stroke="rgba(238,242,239,.25)" stroke-dasharray="2 5"/>
-      <g><circle r="9" fill="#ffd24a" style="filter:drop-shadow(0 0 6px #ffd24a)"/><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#arc"/></animateMotion><animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.45;.5;.95;1" dur="8s" repeatCount="indefinite"/></g>
-      <g opacity="0"><circle r="8" fill="#e8ecf5"/><circle r="8" cx="4" fill="#070b0a"><animate attributeName="cx" values="12;4;-4;-12;-4;4;12" dur="8s" repeatCount="indefinite"/></circle><animateMotion dur="8s" begin="4s" repeatCount="indefinite"><mpath href="#arc"/></animateMotion><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.45;.5;.95;1" dur="8s" repeatCount="indefinite"/></g>
-      <g fill="none" stroke="rgba(238,242,239,.7)" stroke-width="1.2"><path d="M0 0 a8 8 0 0 1 14 -6 a10 10 0 0 1 18 4 a7 7 0 0 1 2 13 h-34 a7 7 0 0 1 0 -11z"/><animateTransform attributeName="transform" type="translate" values="40 40;210 40;40 40" dur="16s" repeatCount="indefinite"/></g>
-      <g stroke="#cfe9ff" stroke-width="1"><path d="M0 -5 v10 M-4.3 -2.5 l8.6 5 M-4.3 2.5 l8.6 -5"/><animateTransform attributeName="transform" type="translate" values="240 10;232 100" dur="5s" repeatCount="indefinite"/></g>
+    <svg class="wsvg" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet">
+      <g fill="none" stroke-linecap="round">
+        <circle cx="150" cy="75" r="64" stroke="rgba(238,242,239,.08)"/>
+        <path d="M150 11 A64 64 0 0 1 214 75" stroke="rgba(238,242,239,.18)" stroke-width="2"/>
+        <path d="M214 75 A64 64 0 0 1 150 139" stroke="rgba(238,242,239,.18)" stroke-width="2"/>
+        <path d="M150 139 A64 64 0 0 1 86 75" stroke="rgba(238,242,239,.18)" stroke-width="2"/>
+        <path d="M86 75 A64 64 0 0 1 150 11" stroke="#b6f08a" stroke-width="2" style="filter:drop-shadow(0 0 4px rgba(182,240,138,.6))"/><circle cx="125.5" cy="15.9" r="3.2" fill="#b6f08a" stroke="none"><animate attributeName="r" values="3.2;4.4;3.2" dur="2.4s" repeatCount="indefinite"/></circle>
+        <circle cx="150" cy="75" r="44" stroke="rgba(238,242,239,.22)" stroke-dasharray="1.5 4"/>
+        <line x1="96" y1="75" x2="204" y2="75" stroke="rgba(238,242,239,.28)"/>
+      </g>
+      <g><animateTransform attributeName="transform" type="rotate" from="0 150 75" to="360 150 75" dur="14s" repeatCount="indefinite"/>
+        <circle cx="150" cy="31" r="6" fill="#ffd24a" style="filter:drop-shadow(0 0 6px #ffd24a)"/>
+        <g transform="translate(150 119)"><circle r="5.5" fill="#e8ecf5"/><circle r="5.5" cx="3" fill="#060908"><animate attributeName="cx" values="9;3;-3;-9;-3;3;9" dur="14s" repeatCount="indefinite"/></circle></g>
+      </g>
+      <g fill="#cfe9ff" opacity=".8">
+        <circle r="1.2"><animateMotion dur="5s" repeatCount="indefinite" path="M128 52 L124 98"/></circle>
+        <circle r="1.2"><animateMotion dur="6s" begin="1.5s" repeatCount="indefinite" path="M156 46 L152 102"/></circle>
+        <circle r="1.2"><animateMotion dur="5.5s" begin="3s" repeatCount="indefinite" path="M176 54 L172 96"/></circle>
+      </g>
+      <text x="150" y="8" text-anchor="middle" class="wl">winter</text><text x="222" y="78" class="wl">spring</text><text x="150" y="150" text-anchor="middle" class="wl">summer</text><text x="78" y="78" text-anchor="end" class="wl wn">autumn</text>
     </svg>
     <div class="wrow"><span>Time</span>afternoon · daylight</div>
     <div class="wrow"><span>Weather</span>outside · cloudy, cool</div>
@@ -307,7 +342,6 @@ body.snap *{transition:none!important}
     <div class="bub it two"><span>I would love to hear about your world.</span></div>
     <div class="pf">Real words · on-device · no cloud</div>
   </div>
-  <div id="face"><svg viewBox="-1.05 -0.35 2.1 1.4"><path id="fbase" pathLength="1"/><path id="flow" pathLength="1"/></svg></div>
 
   <!-- 7 RELATIONSHIP -->
   <div class="blk" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:22vh;max-width:520px"><p class="h split">It gets to <em>know</em> you.</p>
@@ -646,7 +680,6 @@ function faceShape(){
   return {base,low,dBase:d(base),dLow:d(low)};
 }
 const FACE=faceShape();
-document.getElementById('fbase').setAttribute('d',FACE.dBase);document.getElementById('flow').setAttribute('d',FACE.dLow);
 const SEEDC=V(0,.2,0),FSC=.2;           // seed centre (plant-local) and face scale
 const SENSECOL=['#ffd24a','#4aa8ff','#ff8a3a','#ff5f8a','#5ff0d0'];
 const SENSEO=[V(.2,.3,.06),V(0,-.1,.03),V(.09,-.05,.1),V(-.3,.26,.06),V(-.16,.18,-.18)];
@@ -703,10 +736,10 @@ function buildHow(plant,S,extras){
     const o=c.build(0,60);o.frustumCulled=false;plant.add(o);return o});
   howReset();
 }
-const stEls=[...document.querySelectorAll('.st')],stagEls=[...document.querySelectorAll('.stag')],modEls=[...document.querySelectorAll('.modp')],faceEl=document.getElementById('face');
+const stEls=[...document.querySelectorAll('.st')],stagEls=[...document.querySelectorAll('.stag')],modEls=[...document.querySelectorAll('.modp')];
 function dimGarden(f){gardenScene.children.forEach(o=>{if(o===PLANT)return;o.traverse(q=>{const m=q.material;if(!m)return;if(m.uniforms&&m.uniforms.tint)m.uniforms.tint.value.setScalar(f);else if(m.isLineBasicMaterial)m.color.setScalar(f)})})}
 function howReset(){if(!HOW)return;HOW.opq.material.uniforms.op.value=1;HOW.extras.forEach(e=>setOp(e,1));setOp(HOW.morph,0);HOW.lines.forEach(l=>setOp(l,0));setOp(HOW.braid,0);setOp(HOW.flow,0);setOp(HOW.veins,0);HOW.mods.forEach(m=>setOp(m,0));dimGarden(1);
-  stagEls.forEach(e=>e.classList.remove('on'));modEls.forEach(e=>e.classList.remove('on'));faceEl.style.opacity=0}
+  stagEls.forEach(e=>e.classList.remove('on'));modEls.forEach(e=>e.classList.remove('on'));TALK.reset()}
 // step ranges along the section (0..1)
 const HS=[.02,.12,.22,.33,.43,.53,.63,.73,.83,.91,1.0];
 const KH={xA:{p:V(-.6,.52,1.7),l:V(-.4,.3,-.05)},xB:{p:V(-.5,.62,1.55),l:V(-.32,.42,-.05)},seed:{p:V(-.24,.34,1.45),l:V(-.16,.29,0)}};
@@ -725,7 +758,7 @@ function howFrame(ph,t){
   HOW.lines.forEach(l=>{l.geometry.setDrawRange(0,Math.floor(121*draw));setOp(l,draw>0?lineOp:0)});
   const brOp=ss(HS[1],HS[1]+.04,ph)*(1-ss(HS[2]+.03,HS[2]+.07,ph));setOp(HOW.braid,brOp);
   const fpos=HOW.flow.geometry.attributes.position;const tt=t*.00025;
-  for(let i=0;i<HOW.fN;i++){let q;if(i<200){const k=(i/40)|0;const u=((i%40)/40+tt)%1;q=u<=draw?HOW.curves[k].getPoint(u):MERGE}else{const s=(((i-200)/60)+tt*1.4)%1;q=MERGE.clone().lerp(SEEDC,s);if(ph<HS[1])q=MERGE}fpos.setXYZ(i,q.x,q.y,q.z)}
+  for(let i=0;i<HOW.fN;i++){let q;if(i<200){const k=(i/40)|0;const u=((i%40)/40+tt)%1;q=u<=draw?HOW.curves[k].getPoint(u):V(0,-50,0)}else{const s=(((i-200)/60)+tt*1.4)%1;q=MERGE.clone().lerp(SEEDC,s);if(ph<HS[1])q=V(0,-50,0)}fpos.setXYZ(i,q.x,q.y,q.z)}
   fpos.needsUpdate=true;setOp(HOW.flow,ph>HS[0]+.02?Math.max(lineOp,brOp):0);
   // 3+ seed interior
   const inside=ss(HS[2]+.06,HS[3],ph)*(1-morph2);setOp(HOW.veins,inside*.9);
@@ -742,12 +775,7 @@ function howFrame(ph,t){
   modEls.forEach((e,i)=>e.classList.toggle('on',mi===i&&inside>.5));
   if(mi>=0&&mi<6&&inside>.5){const e=modEls[mi];const [x,y]=projectEl(MODPOS[mi],HOW.plant);const r=e.getBoundingClientRect();if(r.width)lines+=`<line x1="${x}" y1="${y}" x2="${r.left}" y2="${r.top+22}"/><circle cx="${x}" cy="${y}" r="3"/><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="rgba(255,255,255,.45)"/>`}
   svg.innerHTML=lines;
-  // face: the seed's points gather into the face line, then the crisp line draws in and talks
-  const fOn=ss(HS[9]+.035,HS[9]+.06,ph);
-  if(fOn>0){const [cx,cy]=projectEl(SEEDC,HOW.plant),[ex]=projectEl(SEEDC.clone().add(V(FSC,0,0)),HOW.plant);const u=Math.abs(ex-cx);
-    faceEl.style.width=(2.1*u)+'px';faceEl.style.height=(1.4*u)+'px';faceEl.style.left=(cx-1.05*u)+'px';faceEl.style.top=(cy-.35*u)+'px';
-    faceEl.style.opacity=1;const dr=1-ss(HS[9]+.035,HS[9]+.075,ph);faceEl.querySelectorAll('path').forEach(q=>q.style.strokeDashoffset=dr)}
-  else faceEl.style.opacity=0;
+  TALK.update(step,ph);
   return {p,l};
 }
 
@@ -766,6 +794,54 @@ const AT=new URLSearchParams(location.search).get('at');if(AT)document.body.clas
 let mx=0,my=0;addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
 function prog(){const out={};let active=secs[0].dataset.s,ai=0;secs.forEach((s,i)=>{const top=s.offsetTop,h=s.offsetHeight;const p=(sCur-top)/Math.max(1,h-innerHeight);out[s.dataset.s]=p;if(sCur+innerHeight*.5>=top){active=s.dataset.s;ai=i}});out._a=active;out._i=ai;return out}
 const projectEl=(local,obj)=>{const v=local.clone();obj.localToWorld(v);v.project(cam);return [(v.x*.5+.5)*innerWidth,(-v.y*.5+.5)*innerHeight,v.z<1]};
+
+// ======================= STEP 10: the real interface, dark (placeholder for the live demo) =======================
+const TALK=(()=>{
+  const V_={bg:'#050706',line:'#4FB574',cx:150,eyeY:128,mouthY:262,Lh:74,eyeSize:30,eyeTurn:7,lineWidth:5,spikeWidth:1.15,smooth:160,lipPoints:90,lipWaveSpeed:600,restOpen:4,
+    looks:{idle:{eyeScale:1,breathAmp:1.4,breathMs:900},listening:{eyeScale:1.28,breathAmp:.8,breathMs:1400},speaking:{eyeScale:1.06,breathAmp:1.4,breathMs:900}}};
+  const NS='http://www.w3.org/2000/svg',FAR=2000,H=390;
+  const root=document.getElementById('talkui'),svgF=document.getElementById('tface'),words=document.getElementById('twords'),btn=document.getElementById('ttalk'),note=document.getElementById('tnote');
+  svgF.setAttribute('viewBox','0 80 300 215');
+  const g=document.createElementNS(NS,'g');['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin'].forEach((k,i)=>g.setAttribute(k,['none',V_.line,V_.lineWidth,'round','round'][i]));svgF.appendChild(g);
+  const P={};['line','up','lo','su','sl','line2'].forEach(k=>{P[k]=document.createElementNS(NS,'path');g.appendChild(P[k])});
+  P.su.setAttribute('stroke-width',V_.lineWidth*V_.spikeWidth);P.sl.setAttribute('stroke-width',V_.lineWidth*V_.spikeWidth);
+  function paths(t,open,phase,eyeScale,breathAmp){
+    const {cx,eyeY,mouthY,Lh}=V_,r=V_.eyeTurn,d=V_.eyeSize*eyeScale+Math.sin(phase)*breathAmp,th0=Math.PI/2,y0=eyeY-r*Math.PI;
+    let line=`M${cx},${-FAR} `;for(let i=0;i<=V_.smooth;i++){const th=th0+i/V_.smooth*Math.PI*2;line+=`L${(cx-d*(Math.sin(th)-1)).toFixed(2)},${(y0+r*(th-th0)-d*Math.cos(th)).toFixed(2)} `}
+    const gp=Math.max(3,open);const wave=(x,ph)=>Math.sin((x-cx)/Lh*Math.PI*2+ph)*(5.5+open*.1);
+    const lipY=(x,up)=>mouthY+(up?-gp/2:gp/2)+(up?-1:1)*(Math.cos((x-cx)/Lh*Math.PI/2)*gp*.5)+wave(x,up?t/V_.lipWaveSpeed:t/V_.lipWaveSpeed+1.2)*(up?1:-1)*.6;
+    line+=`L${cx},${lipY(cx,true).toFixed(2)}`;let up='',lo='',su='',sl='';
+    for(let i=0;i<=V_.lipPoints;i++){const x=cx-Lh+i/V_.lipPoints*Lh*2;up+=`${i?'L':'M'}${x.toFixed(2)},${lipY(x,true).toFixed(2)} `;lo+=`${i?'L':'M'}${x.toFixed(2)},${lipY(x,false).toFixed(2)} `}
+    for(let i=1;i<8;i++){const x=cx-Lh+i/8*Lh*2,len=4+Math.cos((x-cx)/Lh*Math.PI/2)*2;su+=`M${x.toFixed(2)},${(lipY(x,true)-3).toFixed(2)} l0,${(-len).toFixed(2)} `;sl+=`M${x.toFixed(2)},${(lipY(x,false)+3).toFixed(2)} l0,${len.toFixed(2)} `}
+    return {line,up,lo,su,sl,line2:`M${cx},${lipY(cx,false).toFixed(2)} L${cx},${H+FAR}`};
+  }
+  // demo script: the plant's real recorded words, revealed word by word while the lips move
+  const LINES=['I am feeling quite cozy.','A little warm, but okay.','Why do humans have so many things to tell?','I would love to hear about your world.'];
+  let open=false,dismissed=false,state='idle',cur={...V_.looks.idle},phase=0,last=null,mouth=V_.restOpen,li=0,lineStart=0,raf=0;
+  function draw(t){
+    if(!open)return;raf=requestAnimationFrame(draw);
+    const dt=last===null?16:Math.min(100,t-last);last=t;
+    // speaking schedule: ~0.32 s per word, then a pause
+    const L=LINES[li],ws=L.split(' '),el=(t-lineStart)/1000,speakDur=ws.length*.32,total=speakDur+2.2;
+    if(el>total){li=(li+1)%LINES.length;lineStart=t}
+    const speaking=state!=='listening'&&el<speakDur;const st=state==='listening'?'listening':(speaking?'speaking':'idle');
+    const n=Math.min(ws.length,Math.floor(el/.32)+1);words.textContent=state==='listening'?'':ws.slice(0,n).join(' ');
+    const want=V_.looks[st],k=1-Math.exp(-dt/350);for(const key in want)cur[key]+=(want[key]-cur[key])*k;phase+=dt/cur.breathMs;
+    const target=speaking?V_.restOpen+Math.abs(Math.sin(t*.018)*Math.sin(t*.0053+1))*22:V_.restOpen;mouth+=(target-mouth)*(target>mouth?.5:.2);
+    const p=paths(t,mouth,phase,cur.eyeScale,cur.breathAmp);for(const key in P)P[key].setAttribute('d',p[key]);
+  }
+  function show(){if(open)return;open=true;root.classList.add('on');root.setAttribute('aria-hidden','false');if(!AT)document.documentElement.style.overflow='hidden';li=0;lineStart=performance.now();last=null;cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)}
+  function hide(skip){if(!open)return;open=false;root.classList.remove('on');root.setAttribute('aria-hidden','true');document.documentElement.style.overflow='';cancelAnimationFrame(raf);
+    if(skip){dismissed=true;const s=secs.find(x=>x.dataset.s==='bond');scrollTo({top:s.offsetTop+innerHeight*.35,behavior:'smooth'})}}
+  document.getElementById('tclose').onclick=()=>hide(true);
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&open)hide(true)});
+  const mus=document.getElementById('tmusic');mus.onclick=()=>mus.setAttribute('aria-pressed',mus.getAttribute('aria-pressed')==='true'?'false':'true');
+  btn.onclick=()=>{state=state==='listening'?'idle':'listening';btn.dataset.state=state;note.classList.toggle('on',state==='listening');if(state==='idle'){lineStart=performance.now()}};
+  return {
+    update(step,ph){if(step<8)dismissed=false;if(step===9&&!dismissed)show();else if(step!==9&&open)hide(false)},
+    reset(){if(open)hide(false)}
+  };
+})();
 
 // camera keyframes
 const K={
