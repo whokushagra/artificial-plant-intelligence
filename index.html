@@ -73,7 +73,8 @@ svg#lines circle{fill:#fff}
 .readout .bar{height:2px;background:var(--ink);opacity:.75;width:0;transition:width 1.4s cubic-bezier(.2,.7,.1,1)}
 .readout .say{text-transform:none;letter-spacing:0;margin-top:12px;border-top:1px solid var(--faint);padding-top:9px;font:italic 400 19px 'Instrument Serif'}
 .quote{font:italic 400 clamp(22px,2.3vw,34px)/1.2 'Instrument Serif';margin:0 0 4px}
-.vision.v4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.vision.v4{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(24px,3vw,56px)}
+.vision.v4 .d{margin-top:8px}
 .vision{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px;text-align:left}
 .vision div{padding-top:4px}
 .vision .t{font:400 16px Inter}.vision .d{font:300 13.5px/1.5 Inter;color:var(--dim);margin-top:4px}
@@ -361,9 +362,9 @@ body.snap *{transition:none!important}
   <div class="blk rd" data-s="bond" data-a=".5" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(420px,36vw)"><p class="sub" style="margin:0;color:var(--ink);opacity:.85;font-size:clamp(15px,1.2vw,18px)">It gets to know you. Like a curious newcomer in your home, it notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
 
   <!-- 8 FUTURE -->
-  <div class="blk center rd" data-s="future" data-a=".03" data-b=".3" style="top:11vh;width:min(1080px,92vw)"><div class="mono tagline">Vision</div><p class="h split">What if the world around you could <em>answer?</em></p>
-    <p class="sub" style="max-width:640px">We live through the small screens in our hands. We imagine a world where the living things around us become the interface.</p>
-    <div class="vision v4">
+  <div class="blk center rd" data-s="future" data-a=".03" data-b=".3" style="top:8vh;width:min(1180px,92vw)"><div class="mono tagline">Vision</div><p class="h split">What if the world around you could <em>answer?</em></p>
+    <p class="sub" style="max-width:640px;margin-top:22px">We live through the small screens in our hands. We imagine a world where the living things around us become the interface.</p>
+    <div class="vision v4" style="margin-top:12vh">
       <div><div class="t">Grow, don’t just buy</div><div class="d">Why buy an apple shipped across the world, when the next generation could grow the tree and learn from it?</div></div>
       <div><div class="t">Surroundings you can talk to</div><div class="d">Trees, gardens and parks you can ask, listen to, and learn from.</div></div>
       <div><div class="t">Nature that helps</div><div class="d">Living spaces that sense the air, keep watch, and even power what we need.</div></div>
@@ -372,9 +373,9 @@ body.snap *{transition:none!important}
   <div class="blk rd fw" data-s="future" data-a=".34" data-b=".6" style="left:clamp(16px,8vw,140px);top:22vh"><p class="h">Less <em>consumption.</em></p></div>
   <div class="blk rd fw" data-s="future" data-a=".41" data-b=".6" style="left:clamp(16px,8vw,140px);top:34vh"><p class="h">Beyond <em>consumerism.</em></p></div>
   <div class="blk rd fw" data-s="future" data-a=".48" data-b=".6" style="left:clamp(16px,8vw,140px);top:46vh"><p class="h">Past <em>capitalism</em> as usual.</p></div>
-  <div class="blk center rd" data-s="future" data-a=".8" data-b="1.01" style="top:9vh;width:min(980px,92vw)"><p class="h split">A better place to live, for <em>all of us.</em></p></div>
+  <div class="blk center rd" data-s="future" data-a=".8" data-b="1.01" style="top:7vh;width:min(1500px,96vw)"><p class="h split" style="font-size:clamp(28px,3.6vw,60px)">A better future awaits, <em>with you, with us!</em></p></div>
   <div class="blk center" data-s="future" data-a=".88" data-b="1.01" style="top:auto;bottom:11vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
-  <div class="blk center" data-s="future" data-a=".94" data-b="1.01" style="top:auto;bottom:3vh;width:min(900px,90vw)"><p class="h" style="font-size:clamp(22px,2.2vw,34px)">A better future awaits, <em>with you, with us!</em></p></div>
+  <div class="blk center" data-s="future" data-a=".94" data-b="1.01" style="top:auto;bottom:3vh;width:min(900px,90vw)"><p class="h" style="font-size:clamp(22px,2.2vw,34px)">A better place to live, for <em>all of us.</em></p></div>
 </div>
 
 <main id="track">
@@ -1164,7 +1165,7 @@ function futFrame(pf,t){
     else{it.o.quaternion.copy(_q);it.o.scale.setScalar(Math.max(.001,.12+.88*s)*(1-.72*m))}});
   pos.needsUpdate=true;
   // camera: settle into the garden, drift back as it fills, then pull out to see the Earth
-  const F1={p:V(0,1.35,3.7),l:V(0,.28,-.3)},F2={p:V(.7,2.1,5.6),l:V(0,.25,-.4)},F3={p:V(0,.6,13.2),l:V(0,-2.6,0)};
+  const F1={p:V(0,1.35,3.7),l:V(0,.28,-.3)},F2={p:V(.7,2.1,5.6),l:V(0,.25,-.4)},F3={p:V(0,.6,14.2),l:V(0,-2.7,0)};
   const p=lerpV(K.bond.p,F1.p,ss(0,.1,pf)).lerp(F2.p,ss(.12,.6,pf)).lerp(F3.p,ss(.6,.9,pf));
   const l=lerpV(K.bond.l,F1.l,ss(0,.1,pf)).lerp(F2.l,ss(.12,.6,pf)).lerp(F3.l,ss(.6,.9,pf));
   return {p,l};
