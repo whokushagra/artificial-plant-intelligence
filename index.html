@@ -30,6 +30,8 @@ main section{position:relative}
 .blk.dimmed{opacity:.32}
 .h{font:300 clamp(30px,4.2vw,64px)/1.04 'Inter';letter-spacing:-.035em;margin:0}
 .h em,.big em{font:italic 400 1.18em/0.9 'Instrument Serif',serif;letter-spacing:-.005em}
+#heroTitle{text-shadow:0 2px 28px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.4)}
+#heroTitle,#heroTitle .sub,#heroTitle .tagline{transition:color .6s,border-color .6s,opacity .9s ease,transform 1.1s cubic-bezier(.2,.7,.1,1),filter .9s}
 .big{font:300 clamp(40px,7vw,112px)/.98 'Inter';letter-spacing:-.045em;margin:0}
 .sub{font:300 clamp(14px,1.15vw,18px)/1.55 'Inter';color:var(--dim);margin:14px 0 0;max-width:520px}
 .w{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(4px);transition:all .9s cubic-bezier(.2,.7,.1,1)}
@@ -209,12 +211,12 @@ body.snap *{transition:none!important}
 
 <div id="ui">
   <!-- 0 HERO -->
-  <div class="blk center" data-s="hero" data-a="0" data-b=".75" style="top:38vh">
+  <div class="blk center" id="heroTitle" data-s="hero" data-a="0" data-b=".8" style="top:38vh">
     <div class="mono tagline">A new kind of mind</div>
     <p class="big split">Artificial <em>Plant</em> Intelligence</p>
     <p class="sub">A way for people and plants to understand each other.</p>
   </div>
-  <div class="blk center cue mono" data-s="hero" data-a="0" data-b=".3">Scroll</div>
+  <div class="blk center cue mono" data-s="hero" data-a="0" data-b=".04">Scroll</div>
 
   <!-- 1 BRAIN -->
   <div class="blk center" data-s="mind" data-a="0" data-b=".2" style="top:76vh"><p class="h split">Everything you feel begins as a <em>signal.</em></p></div>
@@ -362,7 +364,7 @@ body.snap *{transition:none!important}
 </div>
 
 <main id="track">
-  <section data-s="hero" data-t="Intro" style="height:170vh"></section>
+  <section data-s="hero" data-t="Intro" style="height:760vh"></section>
   <section data-s="mind" data-t="The mind" style="height:480vh"></section>
   <section data-s="input" data-t="Input" style="height:200vh"></section>
   <section data-s="two" data-t="Two brains" style="height:300vh"></section>
@@ -541,6 +543,86 @@ function buildBrain(){
   ATMO_B.add(bokeh(70,-14,-4,7,['#5a6cff','#a16bff','#ff6fb0','#52d8ff'],30,80,.03,.09).build(0,60));
   ATMO_B.add(bokeh(16,1.2,2.6,1.6,['#9fb4ff','#ffffff','#ff9ad5'],70,160,.03,.08).build(0,60));
   const neb=new Cloud();rs(77);for(let i=0;i<60;i++)neb.add((R()-.5)*14,(R()-.5)*7,-12-R()*8,C(['#2a2a8a','#4a1d7a','#123a6a','#5a1650'][i%4]),4000+R()*4000,.015+R()*.015);ATMO_B.add(neb.build(0,80));
+}
+
+// ======================= INTRO: colony grows -> tilts into a meadow -> gathers into a floral brain =======================
+let GROW=null;
+const GY=-1.2,GR=2.0;   // ground height and full colony radius (world)
+const growMat=()=>new THREE.ShaderMaterial({transparent:false,depthWrite:true,
+  uniforms:{grow:{value:0},m1:{value:0},m2:{value:0},op:{value:1},uScale:U.uScale,time:U.time},
+  vertexShader:`attribute vec3 meadow;attribute vec3 brainp;attribute float rn;attribute float groove;attribute float bead;attribute float kind;attribute vec3 fcol;attribute float rnd;attribute float size;
+  uniform float grow,m1,m2,uScale,time;varying vec3 vC;varying float vV;varying float vR;
+  void main(){
+    float fz=(rnd-.5)*.035+.012*sin(atan(position.z,position.x)*9.+rnd*2.);
+    float vis=1.-smoothstep(grow*1.02-.012,grow*1.02+.004,rn+fz);
+    float age=grow-rn;
+    vec3 rim=vec3(.96,.95,.88),yel=vec3(.9,.82,.16),oli=vec3(.45,.52,.13),deep=vec3(.17,.3,.13),blu=vec3(.33,.47,.4);
+    vec3 c=mix(rim,yel,smoothstep(.0,.07,age));c=mix(c,oli,smoothstep(.2,.42,age));c=mix(c,deep,smoothstep(.42,.72,age));
+    c=mix(c,blu,smoothstep(.0,.06,.12-rn)*smoothstep(.3,.5,grow));
+    c*=1.-groove*.6*smoothstep(.04,.12,age);
+    float b=bead*smoothstep(.5,.72,grow)*smoothstep(-.02,.06,age-.25);c=mix(c,mix(vec3(.97,.94,.78),vec3(.95,.8,.35),fract(rnd*7.)),b);
+    c*=(.74+.14*fract(rnd*13.));
+    // meadow: ground darkens into moss, lit in the middle; plants take their flower colours
+    float d=length(meadow.xz);float lit=exp(-d*d/.9)*.9+.12;
+    vec3 gnd=mix(vec3(.05,.08,.04),vec3(.3,.42,.14),lit)*(.75+.5*fract(rnd*5.));
+    vec3 cm=kind<.5?gnd:fcol*(.3+.6*lit);
+    float km=smoothstep(rnd*.45,rnd*.45+.55,m1);
+    vec3 col=mix(c,cm,smoothstep(0.,.6,m1));
+    col=mix(col,fcol*.62,smoothstep(.1,.7,m2));
+    vec3 p=mix(position,meadow,kind<.5?smoothstep(0.,.5,m1):km);
+    float k2=smoothstep(rnd*.4,rnd*.4+.6,m2);float sw=k2*(1.-k2);
+    p=mix(p,brainp,k2);p.x+=sin(time*1.7+rnd*40.)*sw*.25;p.z+=cos(time*1.7+rnd*40.)*sw*.25;p.y+=sw*.35;
+    vC=col;vV=max(vis,step(.001,m1));vR=rnd;
+    vec4 mv=modelViewMatrix*vec4(p,1.);float sz=size*(1.+b*1.4)*mix(1.,.6,m2);gl_PointSize=sz*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`uniform float op;varying vec3 vC;varying float vV;varying float vR;void main(){vec2 q=gl_PointCoord-.5;if(length(q)>.5||vV<.5||vR>op)discard;gl_FragColor=vec4(vC,1.);}`});
+function buildGrow(){
+  const N=170000,P=[],M=[],B=[],RN=[],GV=[],BD=[],KD=[],FC=[],RD=[],SZ=[];
+  // brain targets: the particle brain's own surface, in world space
+  BR.updateMatrixWorld(true);const bs=SHELL.p,bn=bs.length/3,tmp=new THREE.Vector3();
+  // plants for the meadow
+  rs(501);const plants=[];for(let i=0;i<260;i++){const r=Math.pow(R(),.7)*1.45,a=R()*6.283;const h=.12+R()*.55*(1-r/2.2);const kind=i%4;
+    plants.push({x:Math.cos(a)*r,z:Math.sin(a)*r,h,kind,lean:V((R()-.5)*.2,1,(R()-.5)*.2).normalize(),
+      col:C([['#f4f2e6','#ece6c8'],['#f2e8c0','#e9dca0'],['#f0c83a','#ff9f3a'],['#d8d0a8','#c8b878']][kind][R()<.5?0:1])})}
+  const flowerCols=['#e8d23a','#f2efe0','#7d8c2c','#4f7a2c','#ffb347','#c9d96a'].map(C);
+  rs(502);
+  for(let i=0;i<N;i++){
+    const rn=Math.sqrt(R()),a=R()*6.283;const x=Math.cos(a)*rn*GR,z=Math.sin(a)*rn*GR;
+    P.push(x,GY,z);RN.push(rn);
+    const seg=Math.abs(((a/6.283*14)%1)-.5);GV.push(Math.max(0,1-seg*18)*smoothstepJ(.18,.3,rn));
+    BD.push(Math.abs(rn-.47+(R()-.5)*.04)<.03&&R()<.32?1:(rn<.045&&R()<.5?1:0));
+    const rnd=R();RD.push(rnd);SZ.push(5.4+R()*1.8);
+    // meadow: ~30% become stems + flower heads, the rest stay ground
+    let mx=x,my=GY,mz=z,kind=0,fc=flowerCols[(R()*flowerCols.length)|0];
+    if(R()<.3){const pl=plants[(R()*plants.length)|0];kind=1;const t=R();
+      if(t<.62){const s=t/.62;mx=pl.x+pl.lean.x*pl.h*s+Math.sin(s*3+i)*.006;my=GY+pl.h*s;mz=pl.z+pl.lean.z*pl.h*s;fc=C('#6f8a3a').lerp(C('#a8b860'),s)}
+      else{const top=V(pl.x+pl.lean.x*pl.h,GY+pl.h,pl.z+pl.lean.z*pl.h);let d=V(R()-.5,R()-.5,R()-.5).normalize();
+        if(pl.kind===0)d.multiplyScalar(.035+R()*.01);else if(pl.kind===1){d.y=Math.abs(d.y)*.5;d.multiplyScalar(.04*Math.sqrt(R()))}else if(pl.kind===2){d.y*=.15;d.multiplyScalar(.03*Math.sqrt(R()))}else{d.set((R()-.5)*.012,R()*.07,(R()-.5)*.012)}
+        mx=top.x+d.x;my=top.y+d.y;mz=top.z+d.z;fc=pl.col.clone().lerp(C('#ffffff'),R()*.2)}}
+    M.push(mx,my,mz);KD.push(kind);
+    // floral brain: every particle finds a spot on the brain surface; colour = a field of tiny flowers and moss
+    const j=(R()*bn)|0;tmp.set(bs[j*3],bs[j*3+1],bs[j*3+2]);BR.localToWorld(tmp);B.push(tmp.x+(R()-.5)*.01,tmp.y+(R()-.5)*.01,tmp.z+(R()-.5)*.01);
+    FC.push(fc.r,fc.g,fc.b);
+  }
+  const g=new THREE.BufferGeometry();const A=(n,a,s)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,s));
+  A('position',P,3);A('meadow',M,3);A('brainp',B,3);A('rn',RN,1);A('groove',GV,1);A('bead',BD,1);A('kind',KD,1);A('fcol',FC,3);A('rnd',RD,1);A('size',SZ,1);
+  GROW=new THREE.Points(g,growMat());GROW.frustumCulled=false;brainScene.add(GROW);
+}
+function smoothstepJ(a,b,x){const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)}
+const heroTitle=document.getElementById('heroTitle');
+function heroFrame(p,t){
+  // phases along the intro section
+  const grow=ss(.05,.4,p),tilt=ss(.42,.6,p),m2=ss(.66,.86,p),out=ss(.86,.97,p);
+  const u=GROW.material.uniforms;u.grow.value=.03+grow*.97;u.m1.value=ss(.47,.66,p);u.m2.value=m2;u.op.value=1.0001-out;GROW.visible=out<1;
+  // camera: straight down on the colony, tip 90 degrees to the ground, then rise to the brain
+  const L0=V(0,GY,0);const el=lerp(Math.PI/2-.003,.2,tilt),dist=lerp(3.15,2.05,tilt);
+  let cp=V(0,GY+Math.sin(el)*dist,Math.cos(el)*dist),cl=L0.clone().add(V(0,lerp(0,.35,tilt),0));
+  const k=ss(.64,.92,p);cp.lerp(K.mindA.p,k);cl.lerp(K.mindA.l,k);
+  // title ink: dark while the colony fills the screen, white again once it is a dark meadow
+  const ink=ss(.1,.14,p)*(1-ss(.19,.24,p));
+  heroTitle.style.textShadow=ink>.5?'none':'';heroTitle.style.color=`rgb(${Math.round(lerp(244,26,ink))},${Math.round(lerp(241,32,ink))},${Math.round(lerp(238,10,ink))})`;
+  heroTitle.querySelectorAll('.sub,.tagline').forEach(e=>{e.style.color=ink>.5?'rgba(26,32,10,.75)':'';e.style.borderColor=ink>.5?'rgba(26,32,10,.35)':''});
+  bloom.strength=lerp(.22,.9,ss(.88,.98,p));bloom.threshold=lerp(.55,.08,ss(.88,.98,p));
+  return {p:cp,l:cl,brainOp:ss(.86,.97,p)};
 }
 
 // ======================= BUILD: GARDEN WORLD =======================
@@ -882,7 +964,8 @@ function frame(t){
     rp.scene=brainScene;bloom.strength=.9;bloom.threshold=.08;
     const pm=P.mind,pi=P.input,pt=P.two,pb=P.become;
     let brainOp=1,tL=0,tR=0,streamOp=0,tint=new THREE.Color(1,1,1),pathOp=0;
-    if(A==='hero'){const p=clamp(P.hero);target=lerpV(K.hero.p,K.mindA.p,ss(.4,1,p));look=K.hero.l;brainOp=ss(.45,.95,p)}
+    if(GROW&&A!=='hero')GROW.visible=false;
+    if(A==='hero'){const hr=heroFrame(clamp(P.hero),t);target=hr.p;look=hr.l;brainOp=hr.brainOp}
     else if(A==='mind'){target=lerpV(K.mindA.p,K.mindB.p,ss(0,.6,pm));look=lerpV(K.mindA.l,K.mindB.l,ss(0,.6,pm));pathOp=ss(.08,.2,pm)}
     else if(A==='input'){target=lerpV(K.mindB.p,K.input.p,ss(0,.4,pi));look=lerpV(K.mindB.l,K.input.l,ss(0,.4,pi));streamOp=ss(.05,.3,pi);tint.setRGB(lerp(1,1.7,ss(.1,.7,pi)),lerp(1,.5,ss(.1,.7,pi)),lerp(1,.55,ss(.1,.7,pi)))}
     else if(A==='two'){target=lerpV(K.input.p,K.two.p,ss(0,.25,pt));look=lerpV(K.input.l,K.two.l,ss(0,.25,pt));brainOp=1-ss(.02,.2,pt);tL=ss(.15,.35,pt);tR=ss(.35,.55,pt);streamOp=1-ss(0,.15,pt);tint.setRGB(1.7,.5,.55)}
@@ -934,7 +1017,7 @@ function frame(t){
 // ---------- boot: build progressively so the page appears fast ----------
 const nf=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
 (async()=>{
-  await nf();buildBrain();
+  await nf();buildBrain();buildGrow();
   const at=new URLSearchParams(location.search).get('at');
   if(at){const s=secs.find(x=>x.dataset.s===at.split(':')[0]);const f=+(at.split(':')[1]||.5);const y=s.offsetTop+(s.offsetHeight-innerHeight)*f;sTarget=sCur=y}
   requestAnimationFrame(frame);
