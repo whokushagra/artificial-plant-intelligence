@@ -373,7 +373,8 @@ body.snap *{transition:none!important}
   <div class="blk rd fw" data-s="future" data-a=".41" data-b=".6" style="left:clamp(16px,8vw,140px);top:34vh"><p class="h">Beyond <em>consumerism.</em></p></div>
   <div class="blk rd fw" data-s="future" data-a=".48" data-b=".6" style="left:clamp(16px,8vw,140px);top:46vh"><p class="h">Past <em>capitalism</em> as usual.</p></div>
   <div class="blk center rd" data-s="future" data-a=".8" data-b="1.01" style="top:9vh;width:min(980px,92vw)"><p class="h split">A better place to live, for <em>all of us.</em></p></div>
-  <div class="blk center" data-s="future" data-a=".88" data-b="1.01" style="top:auto;bottom:8vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
+  <div class="blk center" data-s="future" data-a=".88" data-b="1.01" style="top:auto;bottom:11vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
+  <div class="blk center" data-s="future" data-a=".94" data-b="1.01" style="top:auto;bottom:3vh;width:min(900px,90vw)"><p class="h" style="font-size:clamp(22px,2.2vw,34px)">A better future awaits, <em>with you, with us!</em></p></div>
 </div>
 
 <main id="track">
@@ -1082,25 +1083,30 @@ const futMat=()=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,ble
   void main(){vec3 p=mix(position,sp,m);vC=mix(col,col2,smoothstep(.3,.9,m));float show=1.-smoothstep(grow-.08,grow,rr);vA=alpha*op*max(show,step(.6,m));
     vA*=1.+m*.8;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(1.+m*3.2)*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
   fragmentShader:`varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord-.5;float r=length(q);if(r>.5)discard;float a=pow(1.-r*2.,1.6)*vA;gl_FragColor=vec4(vC*a,a);}`});
-const WARM=C('#ffe2b8'),SKIN=C('#ffd2a8');
-function personCloud(pose,seed){rs(seed);const c=new Cloud();const col=R()<.5?WARM:C('#cfe9ff');
-  const seg=(a,b,n,s=2.2,al=.75)=>{for(let i=0;i<n;i++){const t=R();c.add(a.x+(b.x-a.x)*t+(R()-.5)*.004,a.y+(b.y-a.y)*t+(R()-.5)*.004,a.z+(b.z-a.z)*t+(R()-.5)*.004,col,s,al)}};
-  const ball=(o,r,n,cc=col)=>{for(let i=0;i<n;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(r*Math.cbrt(R()));c.add(o.x+d.x,o.y+d.y,o.z+d.z,cc,2.2,.8)}};
-  let hip=V(0,.08,0),neck=V(0,.145,0),head=V(0,.168,0);
-  if(pose===1){hip=V(0,.045,0);neck=V(.02,.1,0);head=V(.03,.122,0)}         // crouching to plant
-  if(pose===2){hip=V(0,.03,0);neck=V(-.01,.095,0);head=V(-.01,.118,0)}      // sitting under the tree
-  ball(head,.017,90,SKIN.clone().lerp(col,.5));seg(hip,neck,90,1.8,.6);
-  // legs
-  if(pose===2){seg(hip,V(.06,.012,.015),40);seg(V(.06,.012,.015),V(.08,0,.015),20);seg(hip,V(.06,.012,-.015),40);seg(V(.06,.012,-.015),V(.08,0,-.015),20)}
-  else if(pose===1){seg(hip,V(.03,.03,.015),30);seg(V(.03,.03,.015),V(.02,0,.015),30);seg(hip,V(-.02,.03,-.015),30);seg(V(-.02,.03,-.015),V(-.01,0,-.015),30)}
-  else{seg(hip,V(.012,0,.012),55);seg(hip,V(-.012,0,-.012),55)}
-  // arms (+x faces the tree)
-  const sh=neck.clone().add(V(0,-.008,0));
-  if(pose===0){seg(sh,V(.05,.15,.01),40);seg(sh,V(.01,.09,-.02),35)}                      // talking, hand raised
-  else if(pose===1){seg(sh,V(.06,.03,.01),40);seg(sh,V(.055,.025,-.015),40)}              // hands in the soil
-  else if(pose===2){seg(sh,V(.03,.07,.02),30);seg(sh,V(.03,.07,-.02),30)}
-  else if(pose===3){seg(sh,V(.035,.1,.012),35);seg(V(.035,.1,.012),V(.04,.125,0),15);for(let i=0;i<30;i++)c.add(.042+(R()-.5)*.006,.125+(R()-.5)*.012,(R()-.5)*.003,C('#9fe8ff'),1.6,.9)}   // phone
-  else {seg(sh,V(.045,.2,.0),50);seg(sh,V(.01,.09,-.02),35)}                               // reaching for fruit
+const PPAL=[['#2fe39a','#0b6e5c'],['#ffd23a','#e8322a'],['#ff4fb8','#6a2adf'],['#ff8a9a','#ffb070'],['#ffb02e','#ff5a2e'],['#3fe0f0','#2f5adf'],['#c8ff5a','#1f9a6a']];
+let PCOUNT=0;
+function personCloud(pose,seed){rs(seed);const c=new Cloud();const pal=PPAL[(PCOUNT++)%PPAL.length];const top=C(pal[0]),bot=C(pal[1]);
+  const colAt=y=>top.clone().lerp(bot,Math.min(1,Math.max(0,1-y/.17)));
+  // capsule filled with points, denser near the skin; w/d = side/depth radius scale
+  const cap=(A,B,ra,rb,n,w=1,d=1)=>{const ax=B.clone().sub(A);const L=ax.length();ax.normalize();let u=V(0,0,1);if(Math.abs(ax.dot(u))>.9)u=V(1,0,0);const s1=V().crossVectors(ax,u).normalize(),s2=V().crossVectors(ax,s1).normalize();
+    for(let i=0;i<n;i++){const t=R(),r=(ra+(rb-ra)*t)*Math.pow(R(),.35),a=R()*6.283;const p=A.clone().addScaledVector(ax,t*L).addScaledVector(s1,Math.cos(a)*r*w).addScaledVector(s2,Math.sin(a)*r*d);
+      p.x+=(R()-.5)*.002;p.y+=(R()-.5)*.002;p.z+=(R()-.5)*.002;c.add(p.x,p.y,p.z,colAt(p.y),1.5+R()*.9,.45+R()*.35)}};
+  const ell=(o,rx,ry,rz,n)=>{for(let i=0;i<n;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize();const k=Math.pow(R(),.3);const p=V(o.x+d.x*rx*k,o.y+d.y*ry*k,o.z+d.z*rz*k);c.add(p.x,p.y,p.z,colAt(p.y),1.5+R()*.9,.45+R()*.35)}};
+  // joints (x = toward the tree, z = sideways, y = up)
+  let J={head:V(0,.158,0),neck:V(0,.137,0),sh:[V(0,.129,.023),V(0,.129,-.023)],el:[V(0,.1,.027),V(0,.1,-.027)],ha:[V(0,.073,.026),V(0,.073,-.026)],
+         hip:[V(0,.084,.011),V(0,.084,-.011)],kn:[V(.002,.044,.011),V(.002,.044,-.011)],ft:[V(0,.003,.012),V(0,.003,-.012)]};
+  if(pose===0){J.el[1]=V(.02,.128,-.03);J.ha[1]=V(.046,.155,-.03)}
+  if(pose===1){J={head:V(.032,.112,0),neck:V(.024,.096,0),sh:[V(.021,.09,.023),V(.021,.09,-.023)],el:[V(.045,.062,.025),V(.045,.062,-.025)],ha:[V(.066,.022,.02),V(.066,.022,-.02)],
+         hip:[V(-.006,.046,.011),V(-.006,.046,-.011)],kn:[V(.03,.05,.014),V(.03,.05,-.014)],ft:[V(.006,.003,.014),V(.006,.003,-.014)]}}
+  if(pose===2){J={head:V(-.006,.104,0),neck:V(-.005,.085,0),sh:[V(-.004,.078,.023),V(-.004,.078,-.023)],el:[V(.02,.05,.027),V(.02,.05,-.027)],ha:[V(.042,.04,.02),V(.042,.04,-.02)],
+         hip:[V(0,.03,.011),V(0,.03,-.011)],kn:[V(.05,.036,.012),V(.05,.036,-.012)],ft:[V(.064,.003,.012),V(.064,.003,-.012)]}}
+  if(pose===3){J.el[1]=V(.022,.096,-.027);J.ha[1]=V(.042,.114,-.016)}
+  if(pose===4){J.el[1]=V(.016,.17,-.025);J.ha[1]=V(.032,.206,-.02)}
+  ell(J.head,.014,.018,.014,520);cap(J.neck,J.head.clone().add(V(0,-.012,0)),.0055,.005,90);
+  const chest=J.sh[0].clone().add(J.sh[1]).multiplyScalar(.5).add(V(0,-.006,0)),pelvis=J.hip[0].clone().add(J.hip[1]).multiplyScalar(.5);
+  cap(chest,pelvis,.021,.017,1100,1,.58);cap(J.sh[0],J.sh[1],.009,.009,180);
+  for(let k=0;k<2;k++){cap(J.sh[k],J.el[k],.0062,.005,150);cap(J.el[k],J.ha[k],.005,.0038,130);cap(J.hip[k],J.kn[k],.0095,.007,230);cap(J.kn[k],J.ft[k],.007,.0045,190)}
+  if(pose===3)for(let i=0;i<40;i++)c.add(J.ha[1].x+.004+(R()-.5)*.006,J.ha[1].y+.006+(R()-.5)*.012,J.ha[1].z+(R()-.5)*.003,C('#e8fbff'),1.6,.95);   // glowing phone
   return c.build(0,60)}
 function treeCloud(seed,fruit){rs(seed);const c=new Cloud(),L=new Lines();
   const H=.55+R()*.35;for(let i=0;i<500;i++){const t=R(),a=R()*6.28,r=.018*(1-t*.6);c.add(Math.cos(a)*r,t*H*.62,Math.sin(a)*r,C('#7a5a3a'),1.8,.5)}
