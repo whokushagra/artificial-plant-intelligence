@@ -1,0 +1,191 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Venus 3D Frames</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#000;width:1920px;height:1080px;overflow:hidden}
+canvas{display:block}
+.ui{position:absolute;inset:0;color:#eef2f4;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+.top{position:absolute;top:44px;left:64px;right:64px;display:flex;justify-content:space-between;opacity:.45}
+.cap{position:absolute;left:50%;transform:translateX(-50%);text-align:center;text-transform:none;letter-spacing:-.02em;font:300 34px/1.15 'Inter';color:#f3f1f4}
+.cap em{font:italic 400 42px 'Instrument Serif',serif;letter-spacing:0}
+.plus{position:absolute;padding:14px 22px;text-transform:none;letter-spacing:.02em;font:300 15px 'Inter';color:#eef2f4}
+.plus:before,.plus:after{content:'+';position:absolute;font:200 22px 'Inter';opacity:.8}
+.plus:before{left:-6px;top:-14px}.plus:after{right:-6px;bottom:-16px}
+.plus span{display:block;border:1px solid rgba(238,242,244,.25);padding:6px 14px;background:rgba(255,255,255,.03)}
+.dots{position:absolute;letter-spacing:.2em;opacity:.7;font-size:14px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div class="ui" id="ui"></div>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+
+const F=+(new URLSearchParams(location.search).get('f')||1);
+const W=1920,H=1080;
+let seed=3;const R=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};const rs=n=>seed=n;
+// value noise
+const hash=(x,y,z)=>{let h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h)};
+function noise(x,y,z){const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=x-ix,fy=y-iy,fz=z-iz;const s=t=>t*t*(3-2*t);const u=s(fx),v=s(fy),w=s(fz);
+  const L=(a,b,t)=>a+(b-a)*t;let r=0;
+  return L(L(L(hash(ix,iy,iz),hash(ix+1,iy,iz),u),L(hash(ix,iy+1,iz),hash(ix+1,iy+1,iz),u),v),L(L(hash(ix,iy,iz+1),hash(ix+1,iy,iz+1),u),L(hash(ix,iy+1,iz+1),hash(ix+1,iy+1,iz+1),u),v),w)}
+const fbm=(x,y,z)=>noise(x,y,z)*.6+noise(x*2.1,y*2.1,z*2.1)*.3+noise(x*4.3,y*4.3,z*4.3)*.1;
+
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(W,H);renderer.setPixelRatio(1);document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(F===1?0x020208:0x010403);
+const cam=new THREE.PerspectiveCamera(35,W/H,.05,200);
+
+// ---------- particle system with per-point size/colour/alpha + depth fade ----------
+const ptsMat=(near,far)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  uniforms:{fNear:{value:near},fFar:{value:far}},
+  vertexShader:`attribute float size;attribute float alpha;attribute vec3 col;varying vec3 vC;varying float vA;uniform float fNear,fFar;
+  void main(){vC=col;vec4 mv=modelViewMatrix*vec4(position,1.);float d=-mv.z;vA=alpha*(1.-smoothstep(fNear,fFar,d));gl_PointSize=size*(4.2/d);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vC;varying float vA;void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float a=pow(1.-r*2.,1.6);gl_FragColor=vec4(vC*vA*a,vA*a);}`});
+class Cloud{constructor(){this.p=[];this.c=[];this.s=[];this.a=[]}
+  add(x,y,z,col,s,a){this.p.push(x,y,z);this.c.push(col.r,col.g,col.b);this.s.push(s);this.a.push(a)}
+  build(near=0,far=60){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('col',new THREE.Float32BufferAttribute(this.c,3));g.setAttribute('size',new THREE.Float32BufferAttribute(this.s,1));g.setAttribute('alpha',new THREE.Float32BufferAttribute(this.a,1));return new THREE.Points(g,ptsMat(near,far))}}
+class Lines{constructor(){this.p=[];this.c=[]}
+  seg(a,b,ca,cb){this.p.push(a.x,a.y,a.z,b.x,b.y,b.z);this.c.push(ca.r,ca.g,ca.b,cb.r,cb.g,cb.b)}
+  poly(pts,col,alpha,fadeEnds=true){for(let i=1;i<pts.length;i++){const t0=(i-1)/(pts.length-1),t1=i/(pts.length-1);const f=t=>fadeEnds?Math.sin(t*Math.PI)**.6:1;this.seg(pts[i-1],pts[i],col.clone().multiplyScalar(alpha*f(t0)),col.clone().multiplyScalar(alpha*f(t1)))}}
+  build(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(this.c,3));return new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}))}}
+const C=h=>new THREE.Color(h);
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+function bokeh(n,zMin,zMax,spread,cols,sMin,sMax,aMin,aMax){const b=new Cloud();for(let i=0;i<n;i++){const z=zMin+R()*(zMax-zMin);b.add((R()-.5)*spread*2,(R()-.5)*spread*1.2,z,C(cols[i%cols.length]),sMin+R()*(sMax-sMin),aMin+R()*(aMax-aMin))}return b}
+function dust(n,box,cols,s,a){const d=new Cloud();for(let i=0;i<n;i++)d.add((R()-.5)*box[0],(R()-.5)*box[1],-R()*box[2]+box[3],C(cols[i%cols.length]),s*(.4+R()),a*R());return d}
+
+// ======================= SCENE 1 : THE BRAIN =======================
+function brainField(x,y,z){
+  const E=(cx,cy,cz,rx,ry,rz)=>Math.hypot((x-cx)/rx,(y-cy)/ry,(z-cz)/rz)-1;
+  let f=Math.min(E(0,.05,.36,1,.64,.42),E(0,.05,-.36,1,.64,.42),E(-.06,-.3,.42,.6,.3,.3),E(-.06,-.3,-.42,.6,.3,.3),E(.64,-.46,.2,.32,.2,.26),E(.64,-.46,-.2,.32,.2,.26));
+  if(y<-.42&&y>-1.05){const sx=.36+(-.42-y)*.12;f=Math.min(f,Math.hypot((x-sx)/.12,z/.12)-1)}
+  return f;
+}
+if(F===1){
+  const root=new THREE.Group();scene.add(root);
+  const shell=new Cloud(),inner=new Cloud(),L=new Lines();
+  const pal=['#5a5cff','#7b5cff','#9b6bff','#4f8bff'].map(C);
+  rs(21);let n=0,tries=0;
+  while(n<110000&&tries<6e6){tries++;const x=R()*2.3-1.15,y=R()*1.9-1.1,z=R()*1.7-.85;const f=brainField(x,y,z);
+    if(f<0&&f>-.05){const fold=Math.abs(fbm(x*4.2+9,y*4.2,z*4.2)*2-1);const ridge=Math.pow(Math.min(1,fold*4.5),.7);
+      const col=pal[(R()*4)|0].clone().lerp(C('#c9b8ff'),R()*.25);const rim=Math.pow(Math.max(0,1-Math.abs(z)/0.8),2);
+      shell.add(x,y,z,col,2.2+R()*2.6,(.06+.42*ridge)*(.55+.45*R()));n++}
+    else if(f<-.08&&R()<.03){inner.add(x,y,z,C(R()<.5?'#3d4cff':'#a05cff'),2+R()*3,.04+R()*.06)}}
+  // fibers inside
+  const fpal=['#4fe3ff','#4fe3ff','#b07bff','#ff5fd2','#ff6a4a','#ffffff','#7fa8ff'].map(C);
+  rs(5);
+  for(let k=0;k<170;k++){let p,t=0;do{p=V(R()*2-1,R()*1.3-.7,R()*1.4-.7);t++}while(brainField(p.x,p.y,p.z)>-.06&&t<200);
+    let d=V(R()-.5,R()-.5,R()-.5).normalize();const pts=[p.clone()];const len=20+R()*70;
+    for(let i=0;i<len;i++){d.add(V(R()-.5,R()-.5,R()-.5).multiplyScalar(.7)).normalize();const q=p.clone().addScaledVector(d,.022);if(brainField(q.x,q.y,q.z)>-.02){d.negate();continue}p=q;pts.push(p.clone())}
+    L.poly(pts,fpal[k%fpal.length],.06+R()*.2)}
+  // neurons: bursts
+  rs(9);for(let k=0;k<12;k++){let p,t=0;do{p=V(R()*1.8-.9,R()*1.1-.5,R()*.9+.0);t++}while(brainField(p.x,p.y,p.z)>-.05&&t<200);
+    const col=fpal[k%fpal.length];inner.add(p.x,p.y,p.z,C('#ffffff'),5+R()*5,.9);inner.add(p.x,p.y,p.z,col,22+R()*14,.12);
+    for(let r=0;r<12;r++){let q=p.clone(),d=V(R()-.5,R()-.5,R()-.5).normalize();const pts=[q.clone()];for(let i=0;i<6+R()*12;i++){d.add(V(R()-.5,R()-.5,R()-.5).multiplyScalar(.5)).normalize();q.addScaledVector(d,.018);pts.push(q.clone())}L.poly(pts,col,.25+R()*.3)}}
+  // bundle converging to brainstem
+  rs(13);const stem=V(.44,-1.05,0);
+  for(let k=0;k<60;k++){let p,t=0;do{p=V(R()*1.6-.9,R()*.9-.2,R()*1.2-.6);t++}while(brainField(p.x,p.y,p.z)>-.05&&t<200);
+    const ctl=V(.25+(R()-.5)*.2,-.35,(R()-.5)*.2);const pts=[];for(let s=0;s<=1;s+=.04){const u=1-s;pts.push(V(u*u*p.x+2*u*s*ctl.x+s*s*stem.x+(R()-.5)*.006,u*u*p.y+2*u*s*ctl.y+s*s*stem.y,u*u*p.z+2*u*s*ctl.z+s*s*stem.z))}
+    L.poly(pts,C(k%3?'#cfd8ff':'#9fe8ff'),.05+R()*.09)}
+  // the signal: enters from the front, crosses the brain
+  const sig=new THREE.CatmullRomCurve3([V(-2.4,.05,.55),V(-1.05,.02,.5),V(-.7,-.08,.55),V(-.3,.08,.6),V(.05,.22,.62),V(.35,.12,.58)]).getPoints(160);
+  L.poly(sig,C('#9ff4ff'),1,false);L.poly(sig.map(p=>p.clone().add(V(0,.004,0))),C('#ffffff'),.8,false);
+  sig.forEach((p,i)=>{if(i%3==0)inner.add(p.x,p.y,p.z,C('#6fe8ff'),3+R()*3,.35)});
+  const hd=sig[sig.length-1];inner.add(hd.x,hd.y,hd.z,C('#ffffff'),14,1);inner.add(hd.x,hd.y,hd.z,C('#5fe6ff'),60,.25);
+  root.add(shell.build(0,40),inner.build(0,40),L.build());
+  root.rotation.set(.05,-.42,0);
+  // environment
+  rs(40);scene.add(dust(6000,[30,18,40,-1],['#8fa0ff','#c7b5ff','#ff9ad5'],1.2,.5).build(0,45));
+  scene.add(bokeh(70,-14,-4,7,['#5a6cff','#a16bff','#ff6fb0','#52d8ff'],30,80,.03,.09).build(0,60));
+  scene.add(bokeh(16,1.2,2.6,1.6,['#9fb4ff','#ffffff','#ff9ad5'],70,160,.03,.08).build(0,60));
+  // big soft nebula behind
+  const neb=new Cloud();rs(77);for(let i=0;i<60;i++)neb.add((R()-.5)*14,(R()-.5)*7,-12-R()*8,C(['#2a2a8a','#4a1d7a','#123a6a','#5a1650'][i%4]),4000+R()*4000,.015+R()*.015);scene.add(neb.build(0,80));
+  cam.position.set(-.2,.25,3.7);cam.lookAt(0,-.12,0);
+  document.getElementById('ui').innerHTML=`<div class="top"><span>Project Venus</span><span>The human mind</span><span>01</span></div>
+   <div class="plus" style="left:250px;top:300px"><span>Senses catch the world</span></div>
+   <div class="cap" style="top:900px">Everything you feel begins as a <em>signal.</em></div>`;
+}
+
+// ======================= SCENE 2 : SNAPPY IN THE FOREST =======================
+if(F===2){
+  const G=new Cloud(),Lg=new Lines(),T=new Cloud(),Lt=new Lines(),P=new Cloud(),Lp=new Lines();
+  // ---- moss ground, receding into fog ----
+  rs(2);
+  for(let i=0;i<260000;i++){const r=Math.pow(R(),.55)*16,a=R()*Math.PI*2;const x=Math.cos(a)*r,z=Math.sin(a)*r*1.0-2;if(z>3)continue;
+    const d=Math.hypot(x,(z)*1.3);const l=Math.exp(-d*d/1.4)+.25*Math.exp(-d*d/12);const n=fbm(x*1.3,0,z*1.3);
+    const col=C('#1d4a1c').lerp(C('#b9ff6a'),Math.min(1,l*1.1)).lerp(C('#0c2210'),(1-n)*.4);
+    const y=(n-.5)*.06+Math.max(0,(d-6))*.02*n;G.add(x,y,z,col,1.4+R()*2.4,(.05+.30*l)*(.5+R()*.5))}
+  rs(3);for(let i=0;i<45000;i++){const r=Math.pow(R(),.7)*7,a=R()*Math.PI*2;const x=Math.cos(a)*r,z=Math.sin(a)*r-1;if(z>2.6)continue;
+    const d=Math.hypot(x,z*1.3);const l=Math.exp(-d*d/1.2)+.15;const h=.015+R()*.045;const tilt=V((R()-.5)*.03,h,(R()-.5)*.03);const b=V(x,0,z);
+    Lg.seg(b,b.clone().add(tilt),C('#0f2a10').multiplyScalar(.2),C('#9cff6a').multiplyScalar(Math.min(1,l)*.35))}
+  // ---- trees with light flowing up through them ----
+  rs(8);
+  for(let k=0;k<46;k++){const x=(R()-.5)*18,z=-2.2-R()*12;if(Math.abs(x)<.8&&z>-4)continue;const rad=.08+R()*.22,hgt=7+R()*4;const far=Math.min(1,(-z-2.2)/12);
+    for(let i=0;i<1400;i++){const t=R(),a=R()*Math.PI*2;const y=t*hgt;const rr=rad*(1-t*.4);T.add(x+Math.cos(a)*rr+Math.sin(y*1.3+k)*.05,y,z+Math.sin(a)*rr,C('#6f8a7c').lerp(C('#1a2a22'),far),8+R()*10,(.10+R()*.14)*(1-far*.6))}
+    // flowing filaments climbing the trunk and into the canopy
+    for(let f=0;f<2;f++){let p=V(x+(R()-.5)*rad,0,z+(R()-.5)*rad),d=V(0,1,0);const pts=[p.clone()];const n=60+R()*120;
+      for(let i=0;i<n;i++){d.add(V((R()-.5)*.6,R()*.2,(R()-.5)*.6)).normalize();if(p.y<hgt*.7){p.x+=(x-p.x)*.25;p.z+=(z-p.z)*.25}p.addScaledVector(d,.06);pts.push(p.clone())}
+      Lt.poly(pts,C(R()<.7?'#d8fff0':'#9fe8ff'),(.05+R()*.08)*(1-far*.6));
+      // bright pulses travelling along
+      for(let j=0;j<3;j++){const q=pts[(R()*pts.length)|0];T.add(q.x,q.y,q.z,C('#ffffff'),20+R()*20,.5*(1-far*.5));T.add(q.x,q.y,q.z,C('#8fffd0'),120,.08)}}
+    // canopy haze
+    for(let i=0;i<500;i++)T.add(x+(R()-.5)*3,hgt*.6+R()*hgt*.5,z+(R()-.5)*3,C('#2b5a3a'),20+R()*30,.03*(1-far*.5))}
+  // ---- Snappy: 3D particle Venus flytrap ----
+  const up=V(0,1,0);
+  const leaves=[[0.3,.42,.27,.95],[1.2,.5,.25,.85],[2.1,.38,.29,1.0],[3.05,.48,.24,.8],[3.95,.4,.27,.95],[4.85,.52,.25,.9],[5.6,.36,.23,1.05]];
+  rs(31);
+  leaves.forEach(([az,el,Lp_,open],li)=>{
+    const dir=V(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).normalize();
+    const side=V().crossVectors(dir,up).normalize();const nrm=V().crossVectors(side,dir).normalize();
+    // petiole blade (flat, widening)
+    for(let i=0;i<2200;i++){const t=R(),s=R()*2-1;const w=(.012+.05*Math.sin(Math.min(1,t*1.1)*Math.PI*.9))*s;const sag=-Math.sin(t*Math.PI)*.03;
+      const p=dir.clone().multiplyScalar(t*Lp_).addScaledVector(side,w).addScaledVector(nrm,sag+Math.abs(s)*.006);
+      const edge=Math.abs(s)>.9;P.add(p.x,p.y,p.z,C('#2c8a3a').lerp(C('#c8ff7a'),edge?.8:t*.5),edge?2:1.5+R()*1.2,edge?.3:.09+R()*.08)}
+    // midrib line
+    Lp.poly([0,.25,.5,.75,1].map(t=>dir.clone().multiplyScalar(t*Lp_).addScaledVector(nrm,-Math.sin(t*Math.PI)*.03)),C('#c8ff9a'),.5,false);
+    // trap
+    const T0=dir.clone().multiplyScalar(Lp_);const ax=V(dir.x,.18,dir.z).normalize();
+    const b=V().crossVectors(ax,up).normalize();const c=V().crossVectors(b,ax).normalize();
+    const Lt_=.15+R()*.03;
+    for(const s of [-1,1]){const dS=c.clone().multiplyScalar(Math.cos(open)).addScaledVector(b,s*Math.sin(open));
+      const inw=c.clone().multiplyScalar(Math.sin(open)).addScaledVector(b,-s*Math.cos(open));
+      const rim=[];
+      for(let i=0;i<5200;i++){const u=R(),v=Math.sqrt(R());const ext=Math.pow(Math.sin(u*Math.PI),.7)*.115*v;const cup=Math.sin(u*Math.PI)*.04*v*v;
+        const p=T0.clone().addScaledVector(ax,u*Lt_).addScaledVector(dS,ext).addScaledVector(inw,cup);
+        const col=C('#ff2a4a').lerp(C('#ff8a6a'),R()*.35).lerp(C('#9cff5a'),Math.pow(v,4)*.8);
+        P.add(p.x,p.y,p.z,col,2.4+R()*2,(.10+.16*(1-v))*(.6+R()*.4))}
+      for(let i=0;i<=40;i++){const u=i/40;const ext=Math.pow(Math.sin(u*Math.PI),.7)*.115;const cup=Math.sin(u*Math.PI)*.04;rim.push(T0.clone().addScaledVector(ax,u*Lt_).addScaledVector(dS,ext).addScaledVector(inw,cup))}
+      Lp.poly(rim,C('#ffd0a0'),.35,false);
+      // cilia (teeth)
+      for(let i=3;i<38;i+=2){const u=i/40;const q=rim[i];const out=dS.clone().addScaledVector(ax,(u-.5)*.6).addScaledVector(inw,-.35).normalize();
+        const tip=q.clone().addScaledVector(out,.03+.015*Math.sin(u*Math.PI));Lp.seg(q,tip,C('#c8ff8a').multiplyScalar(.2),C('#ffffff').multiplyScalar(.3));P.add(tip.x,tip.y,tip.z,C('#eaffd0'),2,.25)}
+      // trigger hairs glow
+      for(let j=0;j<3;j++){const u=.3+R()*.4;const p=T0.clone().addScaledVector(ax,u*Lt_).addScaledVector(dS,.03).addScaledVector(inw,.02);P.add(p.x,p.y,p.z,C('#ffffff'),2.5,.9)}}
+    // inner glow per trap
+    const g0=T0.clone().addScaledVector(ax,Lt_*.5);P.add(g0.x,g0.y,g0.z,C('#ff4f6a'),40,.06);
+  });
+  // centre glow + light pool + floating spores
+  P.add(0,.02,0,C('#d6ff8a'),70,.07);P.add(0,.01,0,C('#ffffff'),10,.3);
+  rs(55);for(let i=0;i<260;i++){const r=R()*1.4,a=R()*6.28;P.add(Math.cos(a)*r,.05+R()*1.1,Math.sin(a)*r*.8,C(R()<.7?'#e6ffb8':'#9fe8ff'),1.5+R()*2.5,.25+R()*.5)}
+  const plant=new THREE.Group();plant.add(P.build(0,60),Lp.build());plant.scale.setScalar(1.15);plant.rotation.y=.25;scene.add(plant);
+  scene.add(G.build(0,17),Lg.build(),T.build(0,20),Lt.build());
+  // atmosphere
+  const neb=new Cloud();rs(90);for(let i=0;i<70;i++)neb.add((R()-.5)*30,2+R()*8,-16-R()*6,C(['#0f3b34','#14285a','#2a1850','#0b3a2a'][i%4]),5000+R()*5000,.02+R()*.02);scene.add(neb.build(0,90));
+  rs(91);scene.add(dust(5000,[16,8,16,2],['#d8ffd8','#a8f0ff','#fff2b0'],1,.45).build(0,22));
+  scene.add(bokeh(22,1.6,2.6,1.4,['#b6ff8a','#ffe08a','#8fe8ff'],80,180,.04,.10).build(0,60));
+  cam.position.set(0,.62,1.55);cam.lookAt(0,.2,0);
+  document.getElementById('ui').innerHTML=`<div class="top"><span>Project Venus</span><span>Introducing</span><span>04</span></div>
+   <div class="cap" style="top:120px;font-size:20px;letter-spacing:.3em;text-transform:uppercase;opacity:.6">Introducing</div>
+   <div class="cap" style="top:150px"><em style="font-size:110px;line-height:1.1">Snappy.</em></div>`;
+}
+
+const comp=new EffectComposer(renderer);comp.addPass(new RenderPass(scene,cam));
+comp.addPass(new UnrealBloomPass(new THREE.Vector2(W,H),F===1?.9:.85,.6,.08));comp.addPass(new OutputPass());
+comp.render();document.title='done';
+</script>
+</body></html>

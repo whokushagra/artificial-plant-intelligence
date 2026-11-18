@@ -1,0 +1,187 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Venus Scroll Frames</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;background:#020405;width:1920px;height:1080px;overflow:hidden}
+canvas{position:absolute;inset:0}
+.ui{position:absolute;inset:0;color:#eef3f0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.top{position:absolute;top:44px;left:64px;right:64px;display:flex;justify-content:space-between;opacity:.55}
+.prog{position:absolute;right:64px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px;align-items:flex-end;opacity:.7}
+.prog i{display:block;width:14px;height:1px;background:#eef3f0;opacity:.35}
+.prog i.on{width:34px;opacity:1}
+.line{position:absolute;font:300 64px/1.02 'Inter',sans-serif;letter-spacing:-.03em;text-transform:none;color:#f4f1ee}
+.line em{font:italic 400 76px/.9 'Instrument Serif',serif;letter-spacing:0}
+.small{position:absolute;font:300 16px/1.5 'Inter';text-transform:none;letter-spacing:.01em;color:rgba(238,243,240,.6)}
+.tag{position:absolute}
+.tag .k{color:#fff}.tag .v{opacity:.55;margin-top:5px;text-transform:none;letter-spacing:.04em}
+.scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);opacity:.45;text-align:center}
+.scroll:after{content:'';display:block;width:1px;height:34px;background:linear-gradient(#eef3f0,transparent);margin:10px auto 0}
+</style></head><body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<canvas id="o" width="1920" height="1080"></canvas>
+<div class="ui" id="ui"></div>
+<script>
+const F=+(new URLSearchParams(location.search).get('f')||1);
+const W=1920,H=1080,c=document.getElementById('c'),x=c.getContext('2d'),o=document.getElementById('o').getContext('2d');
+let seed=11;const R=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+const rs=n=>{seed=n};
+
+// ---------------- shared atmosphere ----------------
+function atmosphere(top,mid,glowX,glowY,glowCol){
+  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,top);g.addColorStop(1,'#010203');x.fillStyle=g;x.fillRect(0,0,W,H);
+  g=x.createRadialGradient(glowX,glowY,0,glowX,glowY,900);g.addColorStop(0,glowCol);g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+}
+function aurora(y,cols,alpha){
+  x.save();x.filter='blur(60px)';x.globalCompositeOperation='lighter';
+  cols.forEach((col,i)=>{x.globalAlpha=alpha;x.fillStyle=col;x.beginPath();x.moveTo(0,y+i*30);
+    for(let px=0;px<=W;px+=40)x.lineTo(px,y+i*40+Math.sin(px/260+i*1.7)*70);
+    for(let px=W;px>=0;px-=40)x.lineTo(px,y+i*40+170+Math.sin(px/200+i)*60);x.fill()});
+  x.restore();
+}
+function dust(n,a,blur,col){x.save();if(blur)x.filter=`blur(${blur}px)`;for(let i=0;i<n;i++){x.fillStyle=`rgba(${col},${R()*a})`;const r=R()*1.4+.3;x.beginPath();x.arc(R()*W,R()*H,r,0,7);x.fill()}x.restore()}
+function bokeh(n,minR,maxR,cols,a,blur){x.save();x.filter=`blur(${blur}px)`;x.globalCompositeOperation='lighter';for(let i=0;i<n;i++){const r=minR+R()*(maxR-minR);x.globalAlpha=a*(.4+R()*.6);x.fillStyle=cols[i%cols.length];x.beginPath();x.arc(R()*W,R()*H,r,0,7);x.fill()}x.restore()}
+function vignette(s){const g=x.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*1.0);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${s})`);x.fillStyle=g;x.fillRect(0,0,W,H)}
+function fog(y,h,col,a){x.save();x.filter='blur(40px)';x.globalAlpha=a;x.fillStyle=col;x.fillRect(-100,y,W+200,h);x.restore()}
+
+// ---------------- the brain (in brain colours) ----------------
+function inB(u,v){ // normalized coords ~[-1,1]
+  const main=(u/1)**2+((v+.18)/.62)**2<1 && v<.32;
+  const temp=((u+.1)/.7)**2+((v-.25)/.28)**2<1;
+  const cer=((u-.66)/.31)**2+((v-.36)/.19)**2<1;
+  const stem=u>.32&&u<.5&&v>.3&&v<.82&&Math.abs(u-.4-(v-.3)*.16)<.075;
+  return main||temp||cer||stem;
+}
+rs(5);const GY=[];
+for(let k=0;k<520;k++){let u,v,t=0;do{u=R()*2-1;v=R()*1.8-.85;t++}while(!inB(u,v)&&t<300);
+  let a=R()*6.28,p=[[u,v]],turn=(R()<.5?1:-1)*(.1+R()*.15);for(let i=0;i<60+R()*90;i++){a+=turn+(R()-.5)*.55;if(R()<.05)turn*=-1;const nu=u+Math.cos(a)*.008,nv=v+Math.sin(a)*.008;if(!inB(nu,nv)){a+=2.3;continue}u=nu;v=nv;p.push([u,v])}GY.push(p)}
+function brainPath(cx,cy,S){x.beginPath();for(let vv=-.9;vv<.9;vv+=.006){let first=null,last=null;for(let uu=-1.05;uu<1.05;uu+=.006){if(inB(uu,vv)){if(first===null)first=uu;last=uu}}}}
+function maskBrain(ctx,cx,cy,S){ctx.beginPath();for(let vv=-.85;vv<.85;vv+=.004){let run=null;for(let uu=-1.05;uu<=1.06;uu+=.004){const i=inB(uu,vv);if(i&&run===null)run=uu;if((!i||uu>1.05)&&run!==null){ctx.rect(cx+run*S,cy+vv*S,(uu-run)*S+1,.004*S+1);run=null}}}}
+function drawBrain(cx,cy,S,opts={}){
+  const {sig=0,dissolve=0,rimL='rgba(90,220,255,.55)',rimR='rgba(190,120,255,.45)'}=opts;
+  // subsurface glow behind
+  x.save();x.filter='blur(70px)';x.globalAlpha=.55*(1-dissolve);x.fillStyle='#ff7c8a';maskBrain(x,cx,cy,S);x.fill();x.restore();
+  if(dissolve<1){
+  x.save();maskBrain(x,cx,cy,S);x.clip();
+  // base flesh
+  let g=x.createRadialGradient(cx-S*.25,cy-S*.45,S*.05,cx,cy,S*1.1);
+  g.addColorStop(0,'#ffd9d0');g.addColorStop(.35,'#e9a0a0');g.addColorStop(.7,'#b2607a');g.addColorStop(1,'#4b1f35');
+  x.globalAlpha=1-dissolve;x.fillStyle=g;x.fillRect(cx-S*1.1,cy-S,S*2.2,S*2);
+  // folds: shadow + highlight
+  const lw=S*.018;
+  GY.forEach(p=>{x.lineCap='round';x.lineJoin='round';
+    x.strokeStyle='rgba(80,20,45,.42)';x.lineWidth=lw*1.5;x.beginPath();p.forEach(([u,v],i)=>i?x.lineTo(cx+u*S+lw*.4,cy+v*S+lw*.6):x.moveTo(cx+u*S+lw*.4,cy+v*S+lw*.6));x.stroke();
+    x.strokeStyle='rgba(255,225,215,.32)';x.lineWidth=lw*.55;x.beginPath();p.forEach(([u,v],i)=>i?x.lineTo(cx+u*S-lw*.3,cy+v*S-lw*.4):x.moveTo(cx+u*S-lw*.3,cy+v*S-lw*.4));x.stroke()});
+  // shading for volume
+  g=x.createLinearGradient(cx,cy-S*.8,cx,cy+S*.8);g.addColorStop(0,'rgba(255,255,255,.08)');g.addColorStop(.6,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(20,0,15,.65)');x.fillStyle=g;x.fillRect(cx-S*1.1,cy-S,S*2.2,S*2);
+  // rim lights
+  x.globalCompositeOperation='lighter';
+  g=x.createLinearGradient(cx-S,cy,cx-S*.55,cy);g.addColorStop(0,rimL);g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(cx-S*1.1,cy-S,S,S*2);
+  g=x.createLinearGradient(cx+S*.95,cy,cx+S*.45,cy);g.addColorStop(0,rimR);g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.fillRect(cx,cy-S,S*1.1,S*2);
+  x.restore();}
+  // dissolve particles
+  if(dissolve>0){rs(77);x.save();x.globalCompositeOperation='lighter';
+    for(let i=0;i<9000;i++){const u=R()*2-1,v=R()*1.7-.85;if(!inB(u,v))continue;const d=Math.max(0,dissolve*1.6-(1-(u+1)/2)*.8)*(.6+R()*.8);
+      const px=cx+u*S+d*(380+R()*500)+Math.sin(v*9)*d*80,py=cy+v*S+d*(160+R()*260)-d*Math.cos(u*7)*90;
+      const t=Math.min(1,d*1.2);const r=255*(1-t)+120*t|0,gg=150*(1-t)+255*t|0,b=170*(1-t)+140*t|0;
+      x.fillStyle=`rgba(${r},${gg},${b},${(.25+R()*.55)*(1-Math.max(0,d-1.1))})`;x.fillRect(px,py,1.6,1.6)}x.restore()}
+  // the signal
+  if(sig>0){const path=[[-1.25,.02],[-.82,.05],[-.55,.12],[-.25,.05],[.05,-.12],[.32,-.3],[.55,-.22],[.62,.02],[.45,.18],[.15,.22],[-.2,.3]];
+    const pts=[];for(let i=0;i<path.length-1;i++)for(let t=0;t<1;t+=.04){const [a,b]=path[i],[c2,d]=path[i+1];pts.push([cx+(a+(c2-a)*t)*S,cy+(b+(d-b)*t)*S])}
+    const n=Math.floor(pts.length*sig);x.save();x.globalCompositeOperation='lighter';x.lineCap='round';x.lineJoin='round';
+    [[16,'rgba(80,230,255,.10)',30],[5,'rgba(120,240,255,.45)',20],[1.6,'rgba(235,255,255,.95)',6]].forEach(([w,col,bl])=>{x.lineWidth=w;x.strokeStyle=col;x.shadowColor='#5ef';x.shadowBlur=bl;x.beginPath();pts.slice(0,n).forEach((p,i)=>i?x.lineTo(...p):x.moveTo(...p));x.stroke()});
+    // branching lightning from path
+    rs(31);for(let i=8;i<n;i+=6){let [px,py]=pts[i],a=R()*6.28;x.lineWidth=.8;x.strokeStyle='rgba(150,240,255,.35)';x.shadowBlur=8;x.beginPath();x.moveTo(px,py);for(let j=0;j<14;j++){a+=(R()-.5)*1.2;px+=Math.cos(a)*S*.02;py+=Math.sin(a)*S*.02;x.lineTo(px,py)}x.stroke()}
+    const hd=pts[n-1];const g=x.createRadialGradient(hd[0],hd[1],0,hd[0],hd[1],70);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.2,'rgba(120,240,255,.6)');g.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g;x.beginPath();x.arc(hd[0],hd[1],70,0,7);x.fill();
+    x.restore();return hd}
+}
+
+// ---------------- the flytrap ----------------
+function drawTrap(bx,by,ang,size,open,blur,lit){
+  x.save();if(blur)x.filter=`blur(${blur}px)`;
+  const tx=bx+Math.cos(ang)*size*2.2,ty=by+Math.sin(ang)*size*2.2;
+  const c1x=bx+Math.cos(ang)*size*1.0,c1y=by+Math.sin(ang)*size*1.0-size*.35;
+  // petiole blade
+  const P=[];for(let t=0;t<=1;t+=.05)P.push([(1-t)**2*bx+2*(1-t)*t*c1x+t*t*tx,(1-t)**2*by+2*(1-t)*t*c1y+t*t*ty]);
+  x.beginPath();P.forEach((p,i)=>{const w=Math.sin(i/(P.length-1)*Math.PI)*size*.2+size*.03;x[i?'lineTo':'moveTo'](p[0]+Math.cos(ang-1.57)*w,p[1]+Math.sin(ang-1.57)*w)});
+  for(let i=P.length-1;i>=0;i--){const p=P[i],w=Math.sin(i/(P.length-1)*Math.PI)*size*.2+size*.03;x.lineTo(p[0]+Math.cos(ang+1.57)*w,p[1]+Math.sin(ang+1.57)*w)}
+  let g=x.createLinearGradient(bx,by,tx,ty);g.addColorStop(0,'#16391c');g.addColorStop(1,`rgba(${90*lit+40|0},${200*lit+60|0},${70*lit+30|0},1)`);x.fillStyle=g;x.fill();
+  x.strokeStyle=`rgba(200,255,170,${.35*lit})`;x.lineWidth=1;x.stroke();
+  const L=size*1.1;
+  for(const side of [-1,1]){const la=ang+side*open;const pts=[];
+    for(let t=0;t<=1.0001;t+=.04){const along=t*L,bul=Math.sin(t*Math.PI)*L*.45;pts.push([tx+Math.cos(la)*along+Math.cos(la+side*1.57)*bul,ty+Math.sin(la)*along+Math.sin(la+side*1.57)*bul])}
+    x.beginPath();x.moveTo(tx,ty);pts.forEach(p=>x.lineTo(...p));x.closePath();
+    const mx=tx+Math.cos(la)*L*.5,my=ty+Math.sin(la)*L*.5;
+    g=x.createRadialGradient(mx,my,0,mx,my,L*.7);g.addColorStop(0,`rgba(255,${80+60*lit|0},${90+40*lit|0},1)`);g.addColorStop(.55,'#b8233f');g.addColorStop(1,'#4c8a2c');x.fillStyle=g;x.fill();
+    x.save();x.globalCompositeOperation='lighter';x.strokeStyle=`rgba(210,255,180,${.6*lit})`;x.lineWidth=1.4;x.shadowColor='#bfff9a';x.shadowBlur=12;x.stroke();
+    for(let i=2;i<pts.length-1;i++){const [px,py]=pts[i],[qx,qy]=pts[i-1];const n=Math.atan2(py-qy,px-qx)-side*1.57;const l=size*.26;x.lineWidth=1.1;x.strokeStyle=`rgba(225,255,205,${.75*lit})`;x.beginPath();x.moveTo(px,py);x.lineTo(px+Math.cos(n)*l,py+Math.sin(n)*l);x.stroke()}
+    x.restore()}
+  x.restore();
+}
+function moss(cx,cy,rx,ry,lightX,n){rs(9);x.save();for(let i=0;i<n;i++){const a=R()*6.28,r=Math.sqrt(R());const px=cx+Math.cos(a)*r*rx,py=cy+Math.sin(a)*r*ry;const d=Math.hypot((px-lightX)/rx,(py-cy)/ry);const l=Math.max(0,1-d*1.4);
+  x.strokeStyle=`rgba(${40+180*l|0},${80+175*l|0},${30+90*l|0},${.35+.5*R()})`;x.lineWidth=1.2;const h=4+R()*10;const tilt=(R()-.5)*1.2;x.beginPath();x.moveTo(px,py);x.lineTo(px+Math.sin(tilt)*h,py-Math.cos(tilt)*h);x.stroke()}x.restore()}
+function beam(bx,top,bot,a){x.save();x.globalCompositeOperation='lighter';let g=x.createLinearGradient(0,top,0,bot);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.3,`rgba(255,255,255,${.6*a})`);g.addColorStop(1,`rgba(255,255,255,${a})`);
+  [[40,.05,60],[10,.18,30],[2.2,1,14]].forEach(([w,al,bl])=>{x.globalAlpha=al;x.strokeStyle=g;x.lineWidth=w;x.shadowColor='#fff';x.shadowBlur=bl;x.beginPath();x.moveTo(bx,top);x.lineTo(bx,bot);x.stroke()});
+  rs(44);x.globalAlpha=1;for(let k=0;k<7;k++){let px=bx+(R()-.5)*50,py=top,an=Math.PI/2;x.strokeStyle=`rgba(225,255,240,${.1+R()*.2})`;x.lineWidth=.8;x.shadowBlur=8;x.beginPath();x.moveTo(px,py);for(let i=0;i<300&&py<bot-60;i++){an+=(R()-.5)*.9;an=an*.9+Math.PI/2*.1;px+=Math.cos(an)*3.2+(bx-px)*.005;py+=Math.sin(an)*3.2;x.lineTo(px,py)}x.stroke()}
+  const g2=x.createRadialGradient(bx,bot,0,bx,bot,260);g2.addColorStop(0,`rgba(230,255,190,${.9*a})`);g2.addColorStop(.25,`rgba(150,255,110,${.35*a})`);g2.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g2;x.save();x.translate(0,bot);x.scale(1,.35);x.beginPath();x.arc(bx,0,260,0,7);x.fill();x.restore();x.restore()}
+
+// ---------------- UI helpers ----------------
+const ui=document.getElementById('ui');
+function chrome(step,label){ui.innerHTML+=`<div class="top"><span>Project Venus</span><span>${label}</span><span>${String(step).padStart(2,'0')} / 08</span></div><div class="prog">${[1,2,3,4,5,6,7,8].map(i=>`<i class="${i==step?'on':''}"></i>`).join('')}</div>`}
+function leader(ax,ay,lx,ly){o.strokeStyle='rgba(238,243,240,.5)';o.lineWidth=1;o.beginPath();o.moveTo(ax,ay);o.lineTo(lx,ly);o.lineTo(lx+(lx>ax?40:-40),ly);o.stroke();o.fillStyle='#fff';o.beginPath();o.arc(ax,ay,3,0,7);o.fill();o.strokeStyle='rgba(255,255,255,.4)';o.beginPath();o.arc(ax,ay,9,0,7);o.stroke()}
+
+// ================= FRAMES =================
+if(F===1){ // the brain, alone. a signal arrives.
+  atmosphere('#06101a','',960,520,'rgba(120,60,110,.28)');
+  aurora(140,['#1fb5a8','#6a4bd6'],.12);
+  rs(1);bokeh(26,30,110,['#3fd0ff','#c070ff','#ff8aa0'],.06,26);dust(500,.4,0,'230,240,255');
+  drawBrain(960,520,330,{sig:.22});
+  rs(2);bokeh(9,60,160,['#ff9ab0','#7ae0ff'],.10,40);
+  vignette(.85);
+  chrome(1,'The human mind');
+  ui.innerHTML+=`<div class="line" style="left:50%;top:880px;transform:translateX(-50%);text-align:center;font-size:46px">Everything you feel<br>begins as a <em style="font-size:56px">signal.</em></div>`;
+  ui.innerHTML+=`<div class="scroll">scroll</div>`;
+}
+if(F===2){ // push in: the signal travels. one label.
+  atmosphere('#070c16','',1200,520,'rgba(90,50,120,.32)');
+  aurora(60,['#2ad0c0','#7b4ee8'],.10);
+  rs(3);bokeh(20,40,140,['#3fd0ff','#c070ff'],.07,30);dust(400,.35,0,'230,240,255');
+  x.save();x.filter='blur(1.2px)';x.restore();
+  const hd=drawBrain(1180,560,560,{sig:.62});
+  rs(4);bokeh(7,90,200,['#ff9ab0','#7ae0ff'],.12,50);
+  vignette(.8);
+  chrome(2,'Sense → filter');
+  leader(hd[0],hd[1],1640,200);
+  ui.innerHTML+=`<div class="tag" style="left:1690px;top:186px;width:200px"><div class="k">02 · Filter</div><div class="v">Thousands of signals in.<br>Only what matters gets through.</div></div>`;
+  ui.innerHTML+=`<div class="line" style="left:96px;top:760px">It <em>notices.</em></div><div class="small" style="left:100px;top:850px;width:420px">Your senses catch the world. Your brain keeps<br>only what matters — then compares it with<br>everything you've felt before.</div>`;
+}
+if(F===3){ // dissolve: what if a plant could do the same?
+  atmosphere('#04100c','',1250,640,'rgba(40,120,70,.30)');
+  aurora(100,['#1fb5a8','#59d68a','#6a4bd6'],.10);
+  rs(5);bokeh(24,30,120,['#7affb0','#3fd0ff','#ffd27a'],.06,28);dust(600,.4,0,'220,255,230');
+  drawBrain(720,470,300,{dissolve:.85});
+  vignette(.85);
+  chrome(3,'A question');
+  ui.innerHTML+=`<div class="line" style="left:50%;top:820px;transform:translateX(-50%);text-align:center;font-size:52px">What if a plant<br>could do the <em style="font-size:62px">same?</em></div>`;
+}
+if(F===4){ // reveal: snappy
+  atmosphere('#020806','',960,760,'rgba(60,140,60,.30)');
+  aurora(80,['#16a89a','#2f6fd6','#7b4ee8'],.16);
+  // far forest, blurred
+  rs(6);x.save();x.filter='blur(7px)';for(let i=0;i<26;i++){const tx=R()*W,w=6+R()*16;x.fillStyle=`rgba(${20+R()*20|0},${35+R()*25|0},${35+R()*20|0},.9)`;x.fillRect(tx,0,w,820)}x.restore();
+  fog(560,300,'#0d2a22',.6);
+  dust(500,.35,0,'220,255,230');
+  moss(960,820,760,120,960,26000);
+  beam(960,0,800,1);
+  // back traps blurred, front sharp
+  [[-2.75,58,.55,3,.5],[-0.4,58,.55,3,.5]].forEach(([a,s,op,b,l])=>drawTrap(960,800,a,s,op,b,l));
+  [[-2.35,84,.42,0,.9],[-1.9,104,.36,0,1],[-1.25,112,.44,0,1],[-0.8,92,.38,0,.9]].forEach(([a,s,op,b,l])=>drawTrap(960,800,a,s,op,b,l));
+  rs(8);bokeh(10,70,180,['#b6ff8a','#ffe08a','#7ad8ff'],.10,45);
+  vignette(.8);
+  chrome(4,'Introducing');
+  ui.innerHTML+=`<div class="line" style="left:50%;top:150px;transform:translateX(-50%);text-align:center;font-size:30px;letter-spacing:.02em;opacity:.7">Introducing</div>`;
+  ui.innerHTML+=`<div class="line" style="left:50%;top:196px;transform:translateX(-50%);text-align:center;font-size:96px"><em style="font-size:120px">Snappy.</em></div>`;
+  ui.innerHTML+=`<div class="small" style="left:50%;top:960px;transform:translateX(-50%);text-align:center">The first plant with a mind you can talk to.</div>`;
+}
+</script>
+</body></html>

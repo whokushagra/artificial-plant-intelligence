@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Artificial Plant Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#eef2ef;--dim:rgba(238,242,239,.58);--faint:rgba(238,242,239,.18);--green:#b6f08a;--red:#ff7a7a;--teal:#6fe0d8}
+*{box-sizing:border-box}
+html,body{margin:0;background:#010203;color:var(--ink)}
+body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0}
+#scrim{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1s;background:linear-gradient(90deg,rgba(1,3,2,.82) 0%,rgba(1,3,2,.55) 34%,rgba(1,3,2,0) 62%)}
+#fade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:1}
+#ui{position:fixed;inset:0;pointer-events:none;z-index:2}
+main{position:relative;z-index:3;pointer-events:none}
+main section{position:relative}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.top{position:fixed;top:28px;left:40px;right:40px;display:flex;justify-content:space-between;z-index:4;opacity:.5;pointer-events:none}
+/* chapter rail */
+#rail{position:fixed;right:28px;top:50%;transform:translateY(-50%);z-index:5;display:flex;flex-direction:column;gap:12px;align-items:flex-end;pointer-events:auto}
+#rail a{display:flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;opacity:.35;transition:opacity .4s}
+#rail a span{opacity:0;transform:translateX(6px);transition:all .4s}
+#rail a i{display:block;width:14px;height:1px;background:var(--ink);transition:width .5s}
+#rail a.on{opacity:1}#rail a.on i{width:34px}#rail a.on span,#rail a:hover span{opacity:.8;transform:none}
+#rail a:hover{opacity:.9}
+/* text blocks */
+.blk{position:absolute;opacity:0;transition:opacity .9s ease,transform 1.1s cubic-bezier(.2,.7,.1,1),filter .9s;transform:translateY(18px);filter:blur(6px)}
+.blk.on{opacity:1;transform:none;filter:none}
+.blk.dimmed{opacity:.32}
+.h{font:300 clamp(30px,4.2vw,64px)/1.04 'Inter';letter-spacing:-.035em;margin:0}
+.h em,.big em{font:italic 400 1.18em/0.9 'Instrument Serif',serif;letter-spacing:-.005em}
+.big{font:300 clamp(40px,7vw,112px)/.98 'Inter';letter-spacing:-.045em;margin:0}
+.sub{font:300 clamp(14px,1.15vw,18px)/1.55 'Inter';color:var(--dim);margin:14px 0 0;max-width:520px}
+.w{display:inline-block;opacity:0;transform:translateY(.4em);filter:blur(4px);transition:all .9s cubic-bezier(.2,.7,.1,1)}
+.on .w{opacity:1;transform:none;filter:none}
+.center{left:50%;transform:translate(-50%,18px);text-align:center}
+.center.on{transform:translate(-50%,0)}
+.center .sub{margin-left:auto;margin-right:auto}
+/* labels anchored to 3D */
+.lab{position:absolute;opacity:0;transition:opacity .6s;white-space:nowrap}
+.lab.on{opacity:1}.lab.past{opacity:0}
+.lab .k{color:#fff}.lab .v{font:300 14px 'Inter';letter-spacing:.01em;text-transform:none;color:var(--dim);margin-top:4px}
+svg#lines{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2}
+svg#lines line{stroke:rgba(238,242,239,.45);stroke-width:1}
+svg#lines circle{fill:#fff}
+/* research chips */
+.chip{border:1px solid var(--faint);background:rgba(4,6,8,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:12px 14px;max-width:300px;font:300 14px/1.45 'Inter';color:var(--ink);margin-top:10px;position:relative}
+.chip b{font-weight:400}
+.chip .src{display:block;margin-top:6px;font:300 10px 'JetBrains Mono';letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+.chip:before{content:'+';position:absolute;left:-5px;top:-11px;font:200 16px Inter;opacity:.7}
+.tagline{display:inline-block;border:1px solid var(--faint);border-radius:2px;padding:5px 10px;margin-bottom:14px}
+/* pipeline */
+.pipe{position:absolute;left:clamp(16px,6vw,96px);top:30vh;width:min(560px,46vw)}
+.pipe .rail2{position:absolute;left:15px;top:8px;bottom:8px;width:1px;background:var(--faint)}
+.pipe .dot{position:absolute;left:11px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 14px 4px rgba(182,240,138,.7);transition:top .2s linear}
+.row{position:relative;padding:0 0 18px 44px;opacity:.18;transition:opacity .6s,transform .8s;transform:translateX(-8px)}
+.row.on{opacity:1;transform:none}
+.row .n{position:absolute;left:0;top:2px;width:31px;height:31px;border:1px solid var(--faint);border-radius:50%;display:grid;place-items:center;background:#020403;font:400 10px 'JetBrains Mono'}
+.row.on .n{border-color:var(--green);color:var(--green)}
+.row .t{font:400 18px 'Inter';letter-spacing:-.01em}
+.row .hu{font:300 13px 'Inter';color:var(--dim);margin-top:2px}
+.row .tech{font:300 10.5px/1.6 'JetBrains Mono';letter-spacing:.06em;color:#cfe8c0;margin-top:5px;text-transform:uppercase;opacity:.85}
+.readout{position:absolute;right:clamp(16px,5vw,90px);bottom:clamp(20px,7vh,80px);width:310px}
+.readout .gr{display:grid;grid-template-columns:76px 1fr 54px;row-gap:7px;align-items:center;margin-top:8px}
+.readout .bar{height:2px;background:var(--ink);opacity:.75;width:0;transition:width 1.4s cubic-bezier(.2,.7,.1,1)}
+.readout .say{text-transform:none;letter-spacing:0;margin-top:12px;border-top:1px solid var(--faint);padding-top:9px;font:italic 400 19px 'Instrument Serif'}
+.quote{font:italic 400 clamp(22px,2.3vw,34px)/1.2 'Instrument Serif';margin:0 0 4px}
+.vision{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px;text-align:left}
+.vision div{border-top:1px solid var(--faint);padding-top:12px}
+.vision .t{font:400 16px Inter}.vision .d{font:300 13.5px/1.5 Inter;color:var(--dim);margin-top:4px}
+.therm{position:absolute;text-align:center;width:min(360px,40vw)}
+.therm .chip{max-width:none;text-align:left}
+.legend{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:10px}
+.legend i{display:block;width:180px;height:6px;background:linear-gradient(90deg,#0a0526,#1a1ae6,#00ccd9,#33f24d,#ffe61a,#ff400d,#fff)}
+#src{position:absolute;left:50%;transform:translateX(-50%);top:12vh;width:min(760px,90vw);pointer-events:auto}
+#src ol{padding-left:20px;margin:18px 0 0;font:300 14px/1.6 Inter;color:var(--dim)}
+#src li{margin-bottom:10px}#src a{color:var(--ink)}
+#loader{position:fixed;inset:0;display:grid;place-items:center;z-index:9;background:#010203;transition:opacity 1.2s}
+#loader .mono{opacity:.6}
+#loader .ln{width:160px;height:1px;background:var(--faint);margin:14px auto 0;position:relative;overflow:hidden}
+#loader .ln:after{content:'';position:absolute;inset:0;background:var(--ink);transform:translateX(-100%);animation:ld 1.6s infinite}
+@keyframes ld{to{transform:translateX(100%)}}
+.cue{bottom:34px;text-align:center}
+.cue:after{content:'';display:block;width:1px;height:38px;margin:10px auto 0;background:linear-gradient(var(--ink),transparent);animation:cue 2.2s infinite}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@media (max-width:760px){
+  #rail{display:none}.top{left:16px;right:16px}
+  .pipe{left:16px;right:16px;width:auto;top:auto;bottom:18px;transform:none}
+  .row{padding-bottom:10px}.row .tech{display:none}
+  .readout{display:none}.vision{grid-template-columns:1fr}
+  .therm{width:44vw}.therm .chip{font-size:12px;padding:8px}
+}
+body.snap *{transition:none!important}
+@media (prefers-reduced-motion:reduce){.blk,.w,.row,.lab{transition:none}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<div id="loader"><div style="text-align:center"><div class="mono">Growing the garden</div><div class="ln"></div></div></div>
+<canvas id="gl"></canvas><div id="scrim"></div><div id="fade"></div>
+<svg id="lines"></svg>
+<div class="top mono"><span>Project Venus</span><span id="chap">Artificial Plant Intelligence</span><span id="num">00</span></div>
+<nav id="rail"></nav>
+
+<div id="ui">
+  <!-- 0 HERO -->
+  <div class="blk center" data-s="hero" data-a="0" data-b=".75" style="top:38vh">
+    <div class="mono tagline">A new kind of mind</div>
+    <p class="big split">Artificial <em>Plant</em> Intelligence</p>
+    <p class="sub">A way for people and plants to understand each other.</p>
+  </div>
+  <div class="blk center cue mono" data-s="hero" data-a="0" data-b=".3">Scroll</div>
+
+  <!-- 1 BRAIN -->
+  <div class="blk center" data-s="mind" data-a="0" data-b=".2" style="top:76vh"><p class="h split">Everything you feel begins as a <em>signal.</em></p></div>
+  <div class="lab mono" data-step="1"><div class="k">01 · Take in</div><div class="v">Your senses catch the world.</div></div>
+  <div class="lab mono" data-step="2"><div class="k">02 · Sort</div><div class="v">Most of it is filtered out.</div></div>
+  <div class="lab mono" data-step="3"><div class="k">03 · Remember</div><div class="v">What's left meets your past.</div></div>
+  <div class="lab mono" data-step="4"><div class="k">04 · Decide</div><div class="v">The front of your brain weighs it.</div></div>
+  <div class="lab mono" data-step="5"><div class="k">05 · Express</div><div class="v">It becomes a feeling, then words.</div></div>
+  <div class="blk" data-s="mind" data-a=".9" data-b="1.01" style="left:12vw;top:60vh"><p class="quote">“I’m cold.”</p></div>
+
+  <!-- 2 INPUT -->
+  <div class="blk center" data-s="input" data-a=".05" data-b="1.01" style="top:12vh"><p class="h split">What we take in <em>shapes</em> us.</p><p class="sub">Today, more and more of it arrives through a screen.</p></div>
+  <div class="blk" data-s="input" data-a=".35" data-b="1.01" style="right:8vw;bottom:12vh">
+    <div class="chip"><b>Just having your phone on the desk</b> lowers the working memory you have available, even when it is face-down and silent.<span class="src">Ward et al. 2017 · [5]</span></div>
+  </div>
+
+  <!-- 3 TWO BRAINS -->
+  <div class="blk center" data-s="two" data-a=".02" data-b="1.01" style="top:9vh"><div class="mono tagline">Same brain · different input</div><p class="h split">Change the input, change the <em>pattern.</em></p></div>
+  <div class="blk therm" id="thL" data-s="two" data-a=".25" data-b="1.01">
+    <div class="mono">A day of screens</div>
+    <div class="chip">Higher screen use in early childhood is linked to <b>weaker white-matter</b> in language and reading pathways.<span class="src">Hutton et al. 2020 · [4]</span></div>
+    <div class="chip">Constant notifications split attention and may reshape <b>how we focus and remember.</b><span class="src">Firth et al. 2019 · [6]</span></div>
+  </div>
+  <div class="blk therm" id="thR" data-s="two" data-a=".45" data-b="1.01">
+    <div class="mono">An hour in nature</div>
+    <div class="chip">After a one-hour walk in nature, activity in the <b>amygdala</b>, the brain's stress centre, goes down.<span class="src">Sudimac, Sale &amp; Kühn 2022 · [2]</span></div>
+    <div class="chip">A nature walk <b>quiets rumination</b> and the region tied to it. Attention scores rise by about <b>20%</b>.<span class="src">Bratman 2015 · Berman 2008 · [1][3]</span></div>
+  </div>
+  <div class="blk center mono" data-s="two" data-a=".55" data-b="1.01" style="bottom:4vh;top:auto"><div style="opacity:.6"><div class="legend"><span>calm</span><i></i><span>active</span></div><div style="margin-top:8px;opacity:.7">Illustration based on published findings · not real brain scans</div></div></div>
+
+  <!-- 4 EMPATHY -->
+  <div class="blk center" data-s="become" data-a=".08" data-b=".72" style="top:70vh"><p class="h split">Change what we take in, and we change who we <em>become.</em></p>
+    <p class="sub">Two hours a week in nature is linked to better health and wellbeing <span class="mono" style="font-size:10px;opacity:.7">[7]</span>. We believe a brain that notices living things grows more connected, and more caring.</p></div>
+
+  <!-- 5 REVEAL -->
+  <div class="blk center" data-s="reveal" data-a=".35" data-b="1.01" style="top:9vh"><div class="mono tagline">Introducing</div><p class="big split">Artificial <em>Plant</em> Intelligence</p></div>
+  <div class="blk center" data-s="reveal" data-a=".6" data-b="1.01" style="bottom:7vh;top:auto"><p class="sub" style="font-size:clamp(15px,1.3vw,20px);max-width:620px">A plant with a mind people can understand, and one that learns to understand you.</p></div>
+
+  <!-- 6 HOW IT THINKS -->
+  <div class="blk" data-s="how" data-a="0" data-b="1.01" style="left:clamp(16px,6vw,96px);top:12vh"><p class="h split">How it <em>thinks.</em></p><p class="sub">The same path as yours, rebuilt for a plant.</p></div>
+  <div class="blk pipe" data-s="how" data-a=".04" data-b="1.01" id="pipe">
+    <div class="rail2"></div><div class="dot" id="pdot"></div>
+    <div class="row"><div class="n">01</div><div class="t">Sense</div><div class="hu">like your senses</div><div class="tech">Multi-sensor perception · light · soil moisture · air &amp; root temperature · humidity</div></div>
+    <div class="row"><div class="n">02</div><div class="t">Signal</div><div class="hu">like nerve impulses</div><div class="tech">Edge microcontroller streams live telemetry every 2 s</div></div>
+    <div class="row"><div class="n">03</div><div class="t">Sort</div><div class="hu">like sensory filtering</div><div class="tech">Neural signal classifiers · one trained judge per sense, taught on plant-science ranges</div></div>
+    <div class="row"><div class="n">04</div><div class="t">Context + memory</div><div class="hu">like past experience</div><div class="tech">Context engine · time, season, weather + long-term conversation memory</div></div>
+    <div class="row"><div class="n">05</div><div class="t">Decide</div><div class="hu">like the prefrontal cortex</div><div class="tech">Decision cortex weighs the evidence and admits doubt when it is less than 70% sure</div></div>
+    <div class="row"><div class="n">06</div><div class="t">Speak</div><div class="hu">like language</div><div class="tech">On-device language model · speech in, voice out · fully local, no cloud</div></div>
+  </div>
+  <div class="blk readout mono" data-s="how" data-a=".55" data-b="1.01">
+    <div style="color:var(--green)">▸ Live perception · 11 Nov, 15:58</div>
+    <div class="gr">
+      <span style="opacity:.6">Light</span><div class="bar" data-w="82"></div><b class="cnt" data-v="1914">0</b>
+      <span style="opacity:.6">Soil</span><div class="bar" data-w="63"></div><b class="cnt" data-v="63" data-u="%">0</b>
+      <span style="opacity:.6">Air</span><div class="bar" data-w="58"></div><b class="cnt" data-v="24.2" data-u="°">0</b>
+      <span style="opacity:.6">Humidity</span><div class="bar" data-w="58"></div><b class="cnt" data-v="58" data-u="%">0</b>
+    </div>
+    <div class="say">“A little warm, but okay.”</div>
+    <div style="margin-top:8px;opacity:.55;text-transform:none;letter-spacing:.02em">No feeling is made up. Every word starts from a real sensor.</div>
+  </div>
+
+  <!-- 7 RELATIONSHIP -->
+  <div class="blk" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:22vh;max-width:520px"><p class="h split">It gets to <em>know</em> you.</p>
+    <p class="sub">Like a curious newcomer in your home. It notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
+  <div class="blk" data-s="bond" data-a=".35" data-b="1.01" style="left:clamp(16px,7vw,110px);top:58vh"><p class="quote">“I would love to hear about your world.”</p><p class="quote" style="opacity:.6">“Why do humans have so many things to tell?”</p><div class="mono" style="opacity:.5;margin-top:10px">Real words, spoken by the plant</div></div>
+  <div class="blk" data-s="bond" data-a=".6" data-b="1.01" style="right:8vw;bottom:14vh"><div class="chip"><b>Next:</b> it will sense your touch and know when you are near.<span class="src">In development</span></div></div>
+
+  <!-- 8 FUTURE -->
+  <div class="blk center" data-s="future" data-a=".1" data-b="1.01" style="top:16vh;width:min(980px,92vw)"><div class="mono tagline">Vision</div><p class="h split">Today, one plant. Tomorrow, a <em>generation.</em></p>
+    <div class="vision">
+      <div><div class="t">Classrooms</div><div class="d">Children learn how living things work by asking them.</div></div>
+      <div><div class="t">Homes</div><div class="d">Families grow their own food, guided by the plants themselves.</div></div>
+      <div><div class="t">Interactive nature</div><div class="d">Gardens, parks and old trees you can learn from.</div></div>
+    </div></div>
+</div>
+
+<main id="track">
+  <section data-s="hero" data-t="Intro" style="height:170vh"></section>
+  <section data-s="mind" data-t="The mind" style="height:480vh"></section>
+  <section data-s="input" data-t="Input" style="height:200vh"></section>
+  <section data-s="two" data-t="Two brains" style="height:300vh"></section>
+  <section data-s="become" data-t="Become" style="height:200vh"></section>
+  <section data-s="reveal" data-t="Introducing" style="height:260vh"></section>
+  <section data-s="how" data-t="How it thinks" style="height:440vh"></section>
+  <section data-s="bond" data-t="Relationship" style="height:260vh"></section>
+  <section data-s="future" data-t="Future" style="height:240vh"></section>
+  <section data-s="src" data-t="Sources" style="height:130vh">
+    <div id="src"><div class="mono" style="opacity:.6">Research behind this page</div>
+      <ol>
+        <li>Bratman et al. (2015). Nature experience reduces rumination and subgenual prefrontal cortex activation. <i>PNAS</i>. <a href="https://doi.org/10.1073/pnas.1510459112" target="_blank" rel="noopener">doi.org/10.1073/pnas.1510459112</a></li>
+        <li>Sudimac, Sale &amp; Kühn (2022). How nature nurtures: amygdala activity decreases as the result of a one-hour walk in nature. <i>Molecular Psychiatry</i>. <a href="https://doi.org/10.1038/s41380-022-01720-6" target="_blank" rel="noopener">doi.org/10.1038/s41380-022-01720-6</a></li>
+        <li>Berman, Jonides &amp; Kaplan (2008). The cognitive benefits of interacting with nature. <i>Psychological Science</i>. <a href="https://doi.org/10.1111/j.1467-9280.2008.02225.x" target="_blank" rel="noopener">doi.org/10.1111/j.1467-9280.2008.02225.x</a></li>
+        <li>Hutton et al. (2020). Associations between screen-based media use and brain white matter integrity in preschool-aged children. <i>JAMA Pediatrics</i>. <a href="https://doi.org/10.1001/jamapediatrics.2019.3869" target="_blank" rel="noopener">doi.org/10.1001/jamapediatrics.2019.3869</a></li>
+        <li>Ward et al. (2017). Brain drain: the mere presence of one's own smartphone reduces available cognitive capacity. <i>Journal of the Association for Consumer Research</i>. <a href="https://doi.org/10.1086/691462" target="_blank" rel="noopener">doi.org/10.1086/691462</a></li>
+        <li>Firth et al. (2019). The "online brain": how the Internet may be changing our cognition. <i>World Psychiatry</i>. <a href="https://doi.org/10.1002/wps.20617" target="_blank" rel="noopener">doi.org/10.1002/wps.20617</a></li>
+        <li>White et al. (2019). Spending at least 120 minutes a week in nature is associated with good health and wellbeing. <i>Scientific Reports</i>. <a href="https://doi.org/10.1038/s41598-019-44097-3" target="_blank" rel="noopener">doi.org/10.1038/s41598-019-44097-3</a></li>
+      </ol>
+      <p class="mono" style="margin-top:40px;opacity:.5">Project Venus · Artificial Plant Intelligence</p>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+
+let seed=3;const R=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};const rs=n=>seed=n;
+// value noise
+const hash=(x,y,z)=>{let h=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return h-Math.floor(h)};
+function noise(x,y,z){const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=x-ix,fy=y-iy,fz=z-iz;const s=t=>t*t*(3-2*t);const u=s(fx),v=s(fy),w=s(fz);
+  const L=(a,b,t)=>a+(b-a)*t;let r=0;
+  return L(L(L(hash(ix,iy,iz),hash(ix+1,iy,iz),u),L(hash(ix,iy+1,iz),hash(ix+1,iy+1,iz),u),v),L(L(hash(ix,iy,iz+1),hash(ix+1,iy,iz+1),u),L(hash(ix,iy+1,iz+1),hash(ix+1,iy+1,iz+1),u),v),w)}
+const fbm=(x,y,z)=>noise(x,y,z)*.6+noise(x*2.1,y*2.1,z*2.1)*.3+noise(x*4.3,y*4.3,z*4.3)*.1;
+
+// ---------- shared uniforms + materials ----------
+const U={uScale:{value:1},time:{value:0}};
+const opaqueMat=()=>new THREE.ShaderMaterial({uniforms:{uScale:U.uScale},
+  vertexShader:`attribute float size;attribute vec3 col;varying vec3 vC;uniform float uScale;void main(){vC=col;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vC;void main(){vec2 p=gl_PointCoord-.5;if(length(p)>.5)discard;gl_FragColor=vec4(vC,1.);}`});
+const ptsMat=(near,far)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  uniforms:{fNear:{value:near},fFar:{value:far},op:{value:1},tint:{value:new THREE.Color(1,1,1)},uScale:U.uScale},
+  vertexShader:`attribute float size;attribute float alpha;attribute vec3 col;varying vec3 vC;varying float vA;uniform float fNear,fFar,uScale;
+  void main(){vC=col;vec4 mv=modelViewMatrix*vec4(position,1.);float d=-mv.z;vA=alpha*(1.-smoothstep(fNear,fFar,d));gl_PointSize=size*(4.2*uScale/d);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vC;varying float vA;uniform float op;uniform vec3 tint;void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float a=pow(1.-r*2.,1.6)*op;gl_FragColor=vec4(vC*tint*vA*a,vA*a);}`});
+const thermMat=()=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  uniforms:{op:{value:0},uScale:U.uScale,time:U.time},
+  vertexShader:`attribute float size;attribute float alpha;attribute float heat;varying float vH;varying float vA;uniform float uScale,time;
+  void main(){vec4 mv=modelViewMatrix*vec4(position,1.);float d=-mv.z;vA=alpha;vH=heat+.06*sin(time*1.6+position.x*9.+position.y*7.);gl_PointSize=size*(4.2*uScale/d);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying float vH;varying float vA;uniform float op;
+  vec3 th(float t){t=clamp(t,0.,1.);vec3 c=mix(vec3(.04,.02,.16),vec3(.1,.1,.9),smoothstep(0.,.2,t));c=mix(c,vec3(0.,.8,.85),smoothstep(.2,.38,t));c=mix(c,vec3(.2,.95,.3),smoothstep(.38,.54,t));
+    c=mix(c,vec3(1.,.9,.1),smoothstep(.54,.7,t));c=mix(c,vec3(1.,.25,.05),smoothstep(.7,.86,t));c=mix(c,vec3(1.),smoothstep(.93,1.,t));return c;}
+  void main(){vec2 p=gl_PointCoord-.5;float r=length(p);if(r>.5)discard;float a=pow(1.-r*2.,1.6)*op*vA;gl_FragColor=vec4(th(vH)*a,a);}`});
+class Cloud{constructor(){this.p=[];this.c=[];this.s=[];this.a=[]}
+  add(x,y,z,col,s,a){this.p.push(x,y,z);this.c.push(col.r,col.g,col.b);this.s.push(s);this.a.push(a)}
+  build(near=0,far=60){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('col',new THREE.Float32BufferAttribute(this.c,3));g.setAttribute('size',new THREE.Float32BufferAttribute(this.s,1));g.setAttribute('alpha',new THREE.Float32BufferAttribute(this.a,1));return new THREE.Points(g,ptsMat(near,far))}}
+class Lines{constructor(){this.p=[];this.c=[]}
+  seg(a,b,ca,cb){this.p.push(a.x,a.y,a.z,b.x,b.y,b.z);this.c.push(ca.r,ca.g,ca.b,cb.r,cb.g,cb.b)}
+  poly(pts,col,alpha,fadeEnds=true){for(let i=1;i<pts.length;i++){const t0=(i-1)/(pts.length-1),t1=i/(pts.length-1);const f=t=>fadeEnds?Math.sin(t*Math.PI)**.6:1;this.seg(pts[i-1],pts[i],col.clone().multiplyScalar(alpha*f(t0)),col.clone().multiplyScalar(alpha*f(t1)))}}
+  build(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(this.p,3));g.setAttribute('color',new THREE.Float32BufferAttribute(this.c,3));return new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}))}}
+const C=h=>new THREE.Color(h);
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+function bokeh(n,zMin,zMax,spread,cols,sMin,sMax,aMin,aMax){const b=new Cloud();for(let i=0;i<n;i++){const z=zMin+R()*(zMax-zMin);b.add((R()-.5)*spread*2,(R()-.5)*spread*1.2,z,C(cols[i%cols.length]),sMin+R()*(sMax-sMin),aMin+R()*(aMax-aMin))}return b}
+function dust(n,box,cols,s,a){const d=new Cloud();for(let i=0;i<n;i++)d.add((R()-.5)*box[0],(R()-.5)*box[1],-R()*box[2]+box[3],C(cols[i%cols.length]),s*(.4+R()),a*R());return d}
+
+const setOp=(obj,v)=>obj.traverse(o=>{const m=o.material;if(!m)return;if(m.uniforms&&m.uniforms.op)m.uniforms.op.value=v;else if(m.isLineBasicMaterial){m.opacity=v;m.transparent=true}o.visible=v>.002});
+const setTint=(obj,c)=>obj.traverse(o=>{const m=o.material;if(m&&m.uniforms&&m.uniforms.tint)m.uniforms.tint.value.copy(c)});
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)), ss=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t)};
+const lerpV=(a,b,t)=>a.clone().lerp(b,t);
+
+// ---------- renderer ----------
+const canvas=document.getElementById('gl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+const PR=Math.min(window.devicePixelRatio||1,1.5);renderer.setPixelRatio(PR);
+const cam=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.05,200);
+const brainScene=new THREE.Scene();brainScene.background=new THREE.Color(0x020208);
+const gardenScene=new THREE.Scene();gardenScene.background=new THREE.Color(0x010403);
+const comp=new EffectComposer(renderer);const rp=new RenderPass(brainScene,cam);comp.addPass(rp);
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.9,.6,.08);comp.addPass(bloom);comp.addPass(new OutputPass());
+function resize(){renderer.setSize(innerWidth,innerHeight,false);comp.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;
+  // keep the subject framed on narrow screens
+  cam.fov=innerWidth/innerHeight<1?52:35;cam.updateProjectionMatrix();U.uScale.value=innerHeight*PR/1080}
+addEventListener('resize',resize);resize();
+
+// lateral outline of a left hemisphere (front = -x)
+const OUT=[[-1.00,.05],[-.97,.26],[-.88,.44],[-.72,.58],[-.52,.67],[-.28,.72],[-.02,.72],[.24,.67],[.48,.57],[.68,.43],[.84,.26],[.94,.08],[.96,-.08],[.90,-.19],[.74,-.24],[.52,-.27],[.32,-.34],[.10,-.43],[-.14,-.47],[-.34,-.45],[-.48,-.37],[-.55,-.25],[-.53,-.16],[-.64,-.15],[-.84,-.12],[-.96,-.05]];
+function inPoly(x,y){let c=false;for(let i=0,j=OUT.length-1;i<OUT.length;j=i++){const [xi,yi]=OUT[i],[xj,yj]=OUT[j];if((yi>y)!=(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c}
+function edgeD(x,y){let m=9;for(let i=0,j=OUT.length-1;i<OUT.length;j=i++){const [ax,ay]=OUT[j],[bx,by]=OUT[i];const dx=bx-ax,dy=by-ay;const t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy)));m=Math.min(m,Math.hypot(x-ax-t*dx,y-ay-t*dy))}return m}
+const WMAX=.66,GAP=.02;
+const halfW=(x,y)=>{const e=Math.min(1,(edgeD(x,y)+.01*Math.sin(x*40+y*30))/.36);return WMAX*Math.sqrt(1-(1-e)*(1-e))*(1-.18*Math.max(0,(x-.5)))};
+// sylvian fissure + central sulcus as distance tests
+const sylv=x=>-.17+(x+.53)*.26+Math.sin((x+.53)*3)*.03;
+function cereb(x,y){return ((x-.6)/.31)**2+((y+.39)/.16)**2<1}
+function inBrain3(x,y,z){const az=Math.abs(z);if(inPoly(x,y)){const h=halfW(x,y);return az>GAP*.5&&az<GAP+h}
+  if(cereb(x,y)){const q=1-((x-.6)/.31)**2-((y+.39)/.16)**2;return az<.5*Math.sqrt(Math.max(0,q))}return false}
+// gyri: contour lines of a domain-warped noise field
+function gyri(x,y,z){const wx=fbm(x*1.6+3,y*1.6,z*1.6)*1.4,wy=fbm(x*1.6,y*1.6+7,z*1.6)*1.4;const v=fbm(x*2.3+wx,y*2.3+wy,z*2.3+wx*.5);return Math.abs(((v*7)%1)-.5)*2}
+function brainField(x,y,z){return inBrain3(x,y,z)?-1:1}
+
+// ======================= BUILD: BRAIN WORLD =======================
+let BR,SHELL,THL,THR,PULSE,PATHLINE,REG=[],STREAM,ATMO_B;
+const REGPTS=[V(-1.0,.02,.42),V(.05,-.02,.32),V(.12,-.26,.34),V(-.72,.36,.38),V(-.56,-.08,.44)];
+const REGCOL=['#9ff4ff','#c7a6ff','#ff9ad5','#ffd28a','#b6f08a'];
+function buildBrain(){
+  const root=new THREE.Group();brainScene.add(root);
+  const shell=new Cloud(),inner=new Cloud(),L=new Lines();
+  const pal=['#5a5cff','#6f62ff','#8a66ff','#4f86ff','#a77bff'].map(C);
+  rs(21);let n=0;
+  // cortex surface, both hemispheres
+  while(n<140000){const x=R()*2.05-1.03,y=R()*1.25-.5;if(!inPoly(x,y))continue;
+    const side=R()<.5?1:-1;let h=halfW(x,y);const z0=side*(GAP+h);
+    const g=gyri(x,y,z0);h*=1-.07*Math.pow(1-g,3);
+    // fissures: sylvian + central + longitudinal
+    const fs=Math.abs(y-sylv(x));if(x>-.55&&x<.3&&fs<.018)continue;
+    const cs=Math.abs(x-(.0-(.72-y)*.22));if(y>.05&&cs<.012)continue;
+    if(g<.18)continue; // sulcus gap
+    const z=side*(GAP+h);const bright=Math.pow(g,1.3);
+    const col=pal[(R()*5)|0].clone().lerp(C('#d8ccff'),bright*.35);
+    shell.add(x,y,z,col,2.2+R()*2.6,(.05+.55*bright*bright)*(.6+.4*R()));n++}
+  // edge-on rim particles to define silhouette
+  rs(22);for(let i=0;i<30000;i++){const k=(R()*OUT.length)|0,k2=(k+1)%OUT.length,t=R();const x=OUT[k][0]+(OUT[k2][0]-OUT[k][0])*t,y=OUT[k][1]+(OUT[k2][1]-OUT[k][1])*t;const z=(R()*2-1)*.06;shell.add(x+(R()-.5)*.02,y+(R()-.5)*.02,z,C('#8f86ff'),2+R()*2,.10+R()*.12)}
+  // cerebellum with folia
+  rs(23);for(let i=0;i<40000;i++){const a=R()*Math.PI*2,bb=Math.acos(R()*2-1);let x=.6+.31*Math.sin(bb)*Math.cos(a),y=-.39+.16*Math.cos(bb),z=.5*Math.sin(bb)*Math.sin(a);
+    const fol=Math.abs(Math.sin((y+.39)*95+Math.sin(x*8)*2));if(fol<.25||inPoly(x,y))continue;shell.add(x,y,z,C('#7a6cff').lerp(C('#c7b8ff'),fol*.4),1.6+R()*1.6,.06+.22*fol)}
+  // brainstem
+  rs(24);for(let i=0;i<9000;i++){const t=R(),a=R()*Math.PI*2;const cx=.3+t*.12,cy=-.32-t*.62;const r=.085-.02*t;shell.add(cx+Math.cos(a)*r*.8,cy,Math.sin(a)*r,C('#8a80ff'),1.6+R()*1.6,.06+R()*.12)}
+  // faint inner volume
+  rs(25);for(let i=0;i<14000;i++){const x=R()*2-1,y=R()*1.2-.5,z=R()*1.4-.7;if(inBrain3(x,y,z))inner.add(x,y,z,C(R()<.5?'#3d4cff':'#a05cff'),2+R()*3,.03+R()*.05)}
+  const fpal=['#4fe3ff','#4fe3ff','#b07bff','#ff5fd2','#ff6a4a','#ffffff','#7fa8ff'].map(C);
+  const inside=()=>{let p,t=0;do{p=V(R()*1.9-.95,R()*1.1-.42,R()*1.3-.65);t++}while(!inBrain3(p.x,p.y,p.z)&&t<400);return p};
+  // fibers
+  rs(5);for(let k=0;k<150;k++){let p=inside();let d=V(R()-.5,R()-.5,R()-.5).normalize();const pts=[p.clone()];const len=20+R()*70;
+    for(let i=0;i<len;i++){d.add(V(R()-.5,R()-.5,R()-.5).multiplyScalar(.7)).normalize();const q=p.clone().addScaledVector(d,.022);if(!inBrain3(q.x,q.y,q.z)){d.negate();continue}p=q;pts.push(p.clone())}
+    L.poly(pts,fpal[k%fpal.length],.05+R()*.16)}
+  // neurons
+  rs(9);for(let k=0;k<12;k++){const p=inside();const col=fpal[k%fpal.length];inner.add(p.x,p.y,p.z,C('#ffffff'),5+R()*4,.8);inner.add(p.x,p.y,p.z,col,22+R()*14,.10);
+    for(let r=0;r<12;r++){let q=p.clone(),d=V(R()-.5,R()-.5,R()-.5).normalize();const pts=[q.clone()];for(let i=0;i<6+R()*12;i++){d.add(V(R()-.5,R()-.5,R()-.5).multiplyScalar(.5)).normalize();q.addScaledVector(d,.018);pts.push(q.clone())}L.poly(pts,col,.22+R()*.28)}}
+  // bundle into the brainstem
+  rs(13);const stem=V(.43,-.95,0);
+  for(let k=0;k<70;k++){const p=inside();const ctl=V(.24+(R()-.5)*.15,-.28,(R()-.5)*.15);const pts=[];for(let s=0;s<=1;s+=.04){const u=1-s;pts.push(V(u*u*p.x+2*u*s*ctl.x+s*s*stem.x,u*u*p.y+2*u*s*ctl.y+s*s*stem.y,u*u*p.z+2*u*s*ctl.z+s*s*stem.z))}
+    L.poly(pts,C(k%3?'#cfd8ff':'#9fe8ff'),.04+R()*.08)}
+  root.add(shell.build(0,40),inner.build(0,40),L.build());
+  SHELL=shell;BR=root;
+  root.rotation.set(.08,-.5,0);root.position.y=.05;
+  // animated signal path: senses -> sort -> remember -> decide -> express -> out
+  const curve=new THREE.CatmullRomCurve3([V(-2.4,.02,.45),...REGPTS,V(-1.7,-.2,.5)]);
+  const pl=new Lines();pl.poly(curve.getPoints(220),C('#9ff4ff'),.35,false);PATHLINE=pl.build();root.add(PATHLINE);
+  const pc=new Cloud();for(let i=0;i<40;i++)pc.add(0,0,0,C(i<3?'#ffffff':'#7fe9ff'),i<3?16-i*3:6-i*.1,i<3?1:.6*(1-i/40));
+  PULSE=pc.build(0,40);PULSE.userData.curve=curve;root.add(PULSE);
+  REGPTS.forEach((p,i)=>{const c=new Cloud();c.add(p.x,p.y,p.z,C(REGCOL[i]),70,.22);c.add(p.x,p.y,p.z,C('#ffffff'),9,.9);
+    rs(200+i);for(let k=0;k<160;k++){const d=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(R()*.09);c.add(p.x+d.x,p.y+d.y,p.z+d.z,C(REGCOL[i]),2+R()*2,.5)}
+    const o=c.build(0,40);setOp(o,0);root.add(o);REG.push(o)});
+  // thermal twins (subsampled shell)
+  const mk=(heatFn)=>{const P=[],Hh=[],S=[],A=[];const s=SHELL;for(let i=0;i<s.s.length;i+=2){const x=s.p[i*3],y=s.p[i*3+1],z=s.p[i*3+2];P.push(x,y,z);Hh.push(clamp(heatFn(x,y,z)));S.push(s.s[i]*1.1);A.push(.25+s.a[i]*1.3)}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('heat',new THREE.Float32BufferAttribute(Hh,1));g.setAttribute('size',new THREE.Float32BufferAttribute(S,1));g.setAttribute('alpha',new THREE.Float32BufferAttribute(A,1));
+    const grp=new THREE.Group();grp.add(new THREE.Points(g,thermMat()));grp.rotation.set(.08,-.5,0);grp.scale.setScalar(.72);brainScene.add(grp);setOp(grp,0);return grp};
+  const gs=(x,y,cx,cy,r)=>Math.exp(-((x-cx)**2+(y-cy)**2)/(r*r));
+  THL=mk((x,y,z)=>.28+.62*gs(x,y,.12,-.26,.24)+.5*gs(x,y,-.62,-.15,.22)+.25*gs(x,y,.8,.05,.25)+.38*(fbm(x*4+1,y*4,z*4)-.35));
+  THR=mk((x,y,z)=>.1+.36*gs(x,y,-.7,.32,.32)+.05*gs(x,y,.12,-.26,.24)+.16*(fbm(x*3+5,y*3,z*3)-.3));
+  // screen stream: fast warm particles pouring in
+  const N=900,sp=new Float32Array(N*3),sc=[],ssz=[],sa=[];STREAM={n:N,v:[]};
+  rs(300);for(let i=0;i<N;i++){sp[i*3]=-4+R()*3;sp[i*3+1]=(R()-.5)*1.2;sp[i*3+2]=(R()-.5)*1.2;STREAM.v.push(.02+R()*.05);const c=C(['#ff7a5a','#ffd28a','#ffffff','#ff5f9a'][i%4]);sc.push(c.r,c.g,c.b);ssz.push(2+R()*3);sa.push(.3+R()*.5)}
+  const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));sg.setAttribute('col',new THREE.Float32BufferAttribute(sc,3));sg.setAttribute('size',new THREE.Float32BufferAttribute(ssz,1));sg.setAttribute('alpha',new THREE.Float32BufferAttribute(sa,1));
+  STREAM.obj=new THREE.Points(sg,ptsMat(0,40));brainScene.add(STREAM.obj);setOp(STREAM.obj,0);
+  {const lp=new Float32Array(N*6),lc=new Float32Array(N*6);for(let i=0;i<N;i++){const c=C(['#ff7a5a','#ffd28a','#ffffff','#ff5f9a'][i%4]);lc.set([c.r*.05,c.g*.05,c.b*.05,c.r*.9,c.g*.9,c.b*.9],i*6)}
+   const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.BufferAttribute(lp,3));lg.setAttribute('color',new THREE.BufferAttribute(lc,3));
+   STREAM.lines=new THREE.LineSegments(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));brainScene.add(STREAM.lines);setOp(STREAM.lines,0)}
+  // atmosphere
+  ATMO_B=new THREE.Group();brainScene.add(ATMO_B);
+  rs(40);ATMO_B.add(dust(6000,[30,18,40,-1],['#8fa0ff','#c7b5ff','#ff9ad5'],1.2,.5).build(0,45));
+  ATMO_B.add(bokeh(70,-14,-4,7,['#5a6cff','#a16bff','#ff6fb0','#52d8ff'],30,80,.03,.09).build(0,60));
+  ATMO_B.add(bokeh(16,1.2,2.6,1.6,['#9fb4ff','#ffffff','#ff9ad5'],70,160,.03,.08).build(0,60));
+  const neb=new Cloud();rs(77);for(let i=0;i<60;i++)neb.add((R()-.5)*14,(R()-.5)*7,-12-R()*8,C(['#2a2a8a','#4a1d7a','#123a6a','#5a1650'][i%4]),4000+R()*4000,.015+R()*.015);ATMO_B.add(neb.build(0,80));
+}
+
+// ======================= BUILD: GARDEN WORLD =======================
+let PLANT=null,GARDEN_READY=false;
+function buildGarden(){
+  const gs=gardenScene;
+  const G=new Cloud(),Lg=new Lines(),T=new Cloud(),Lt=new Lines(),P=new Cloud(),Lp=new Lines();
+  // ---- spotlit garden diorama: ground mounds, moss, wildflowers, mist ----
+  const SP=(x,z)=>{const d2=x*x+(z+.05)*(z+.05);return Math.exp(-d2/.4)*.5+Math.exp(-d2/2.2)*.1};   // overhead spotlight
+  const H=(x,z)=>(fbm(x*1.4+5,0,z*1.4)-.5)*.22*Math.min(1,Math.max(0,(Math.hypot(x,z)-.6)/1.2))-.02+Math.max(0,Math.hypot(x,z)-1.2)*.05*fbm(x,3,z);   // uneven ground
+  // soil + moss points
+  rs(2);for(let i=0;i<180000;i++){const r=Math.pow(R(),.6)*9,a=R()*Math.PI*2;const x=Math.cos(a)*r,z=Math.sin(a)*r-1.5;if(z>2.4)continue;
+    const l=SP(x,z);const n=fbm(x*6,1,z*6);const moss=n>.5;
+    const col=(moss?C('#2f6b2a').lerp(C('#c9ff8a'),l):C('#2a2418').lerp(C('#8a7a50'),l*.6));const front=Math.max(.12,1-Math.max(0,z-.4)*.8);
+    G.add(x,H(x,z)+(moss?(n-.5)*.03:0),z,col,1.4+R()*2,(.02+.22*l)*(.5+R()*.5)*front)}
+  // moss carpet: dense fine tufts, lit in the pool
+  rs(3);for(let i=0;i<70000;i++){const r=Math.pow(R(),.75)*4,a=R()*Math.PI*2;const x=Math.cos(a)*r,z=Math.sin(a)*r-.6;if(z>2.4)continue;if(Math.hypot(x,z)<.38&&R()<.85)continue;
+    const l=SP(x,z);const front=Math.max(.1,1-Math.max(0,z-.4)*.9);const h=(.01+R()*.035)*(.6+fbm(x*3,1,z*3)*1.4);const y0=H(x,z);
+    const bend=V(R()-.5,0,R()-.5).normalize().multiplyScalar(h*(.2+R()*.5));
+    const p0=V(x,y0,z),p1=p0.clone().add(V(bend.x*.2,h*.55,bend.z*.2)),p2=p0.clone().add(V(bend.x,h,bend.z));
+    const cm=C('#3f9a32').multiplyScalar((.02+.22*l)*front),ct=C('#d4ff9a').multiplyScalar((.03+.38*l)*front);
+    Lg.seg(p0,p1,C('#0c240e').multiplyScalar(.05),cm);Lg.seg(p1,p2,cm,ct)}
+  // wildflowers framing the clearing (dandelion puffs, umbels, daisies)
+  rs(8);
+  for(let k=0;k<95;k++){const ang=R()*Math.PI*2;let r=.85+Math.pow(R(),.8)*2.4;let x=Math.cos(ang)*r*1.3,z=Math.sin(ang)*r-1.0;if(z>.5)z-=1.6;if(Math.abs(x)<.6&&z>-.7)continue;
+    const l=Math.min(1,SP(x,z)*1.4+.08);const hgt=.14+R()*.38*(1+Math.abs(x)*.2);const y0=H(x,z);const lean=V((R()-.5)*.25,1,(R()-.5)*.25).normalize();
+    const pts=[];for(let t=0;t<=1;t+=.1)pts.push(V(x+lean.x*hgt*t+Math.sin(t*3+k)*.015,y0+lean.y*hgt*t,z+lean.z*hgt*t));
+    Lt.poly(pts,C('#7fa86a').lerp(C('#e8f5c8'),l*.4),.06+.25*l,false);
+    const top=pts[pts.length-1];const kind=k%4;
+    if(kind===0){ // dandelion puff
+      for(let i=0;i<220;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize();const q=top.clone().addScaledVector(d,.022+R()*.008);Lt.seg(top,q,C('#ffffff').multiplyScalar(.01),C('#f4f4ee').multiplyScalar(.04+.18*l));T.add(q.x,q.y,q.z,C('#ffffff'),1.1,.04+.16*l)}}
+    else if(kind===1){ // umbel of tiny cream flowers
+      for(let j=0;j<14;j++){const d=V(R()-.5,.6+R()*.4,R()-.5).normalize();const q=top.clone().addScaledVector(d,.03+R()*.03);Lt.seg(top,q,C('#9ab07a').multiplyScalar(.1),C('#e8f0d0').multiplyScalar(.15+.4*l));
+        for(let i=0;i<14;i++)T.add(q.x+(R()-.5)*.012,q.y+(R()-.5)*.006,q.z+(R()-.5)*.012,C('#f6f2dc'),1.4+R()*1,.06+.3*l)}}
+    else if(kind===2){ // daisy / aster
+      const col=R()<.5?C('#ffd9a8'):C('#f2f2ff');for(let i=0;i<16;i++){const a2=i/16*6.28;for(let j=1;j<=6;j++){const q=top.clone().add(V(Math.cos(a2)*.006*j,.0,Math.sin(a2)*.006*j));T.add(q.x,q.y,q.z,col,1.5,.06+.3*l)}}
+      T.add(top.x,top.y,top.z,C('#ffb84a'),5,.3+.5*l)}
+    else { // grass seed head
+      for(let i=0;i<40;i++){const t=R();const q=top.clone().add(V((R()-.5)*.01,t*.08,(R()-.5)*.01));T.add(q.x,q.y,q.z,C('#e8d8a8'),1.6,.08+.35*l)}}
+  }
+  // little warm flowers sprinkled through the moss
+  rs(12);for(let k=0;k<160;k++){const r=.45+Math.pow(R(),.7)*3,a=R()*6.28;const x=Math.cos(a)*r*1.2,z=Math.sin(a)*r-.8;if(z>1.8)continue;const l=SP(x,z)*1.3+.05;const y=H(x,z)+.02+R()*.04;
+    const col=R()<.7?C('#ffa53a'):C('#ffe066');for(let i=0;i<10;i++)T.add(x+(R()-.5)*.012,y+(R()-.5)*.006,z+(R()-.5)*.012,col,2+R()*1.6,.15+.6*Math.min(1,l))}
+  // teal mist behind the clearing + dark backdrop
+  rs(14);for(let i=0;i<160;i++){T.add((R()-.5)*3.2,.15+R()*.9,-1.6-R()*2.2,C(R()<.6?'#2d8a8a':'#3a6a9a'),300+R()*500,.03+R()*.03)}
+  // soft overhead light falling into the clearing
+  for(let i=0;i<5000;i++){const y=R()*2.4,r=(.15+y*.25)*Math.sqrt(R()),a=R()*6.28;T.add(Math.cos(a)*r,y,Math.sin(a)*r-.1,C('#f0fff0'),1.4,.035*(1-y/2.4))}
+  // floating motes
+  rs(15);for(let i=0;i<220;i++){T.add((R()-.5)*3,.1+R()*1.4,-1.2+R()*2,C(R()<.7?'#f6ffe8':'#bff4ff'),1.6+R()*2.6,.25+R()*.55)}
+  // ---- Snappy: fleshy 3D traps, real spines, garden-matched colour ----
+  {
+  const S=[],SC=[],SS=[];const add=(p,c,sz)=>{S.push(p.x,p.y,p.z);SC.push(c.r,c.g,c.b);SS.push(sz)};
+  const Dew=new Cloud();
+  const LIGHT=V(.15,1,.25).normalize();           // same overhead light as the clearing
+  const CAM=V(0,.6,1.85).multiplyScalar(1/1.45);  // camera in plant space
+  const TEAL=C('#3a8f96'),WHITE=C('#ffffff');
+  // physically-ish shading: diffuse + wet specular + teal rim (from the mist)
+  const shade=(p,n,base,o={})=>{const {amb=.16,k=.30,spec=.55,gl=40,rim=.22}=o;const vw=CAM.clone().sub(p).normalize();if(n.dot(vw)<0)n=n.clone().negate();
+    const d=Math.max(0,n.dot(LIGHT));const h=LIGHT.clone().add(vw).normalize();const sp=Math.pow(Math.max(0,n.dot(h)),gl);const r=Math.pow(1-Math.max(0,n.dot(vw)),3);
+    const ao=Math.min(1,.45+p.y*3.2);   // darker near the soil -> merges into the moss
+    return base.clone().multiplyScalar((amb+(1-amb)*d)*k*ao).add(WHITE.clone().multiplyScalar(sp*spec*.22*ao)).add(TEAL.clone().multiplyScalar(r*rim*.35))};
+  const surf=(f,nu,nv,colFn,sz,o)=>{const e=.002;for(let i=0;i<nu*nv;i++){const u=R(),v=R();const p=f(u,v);const pu=f(Math.min(1,u+e),v).sub(p),pv=f(u,Math.min(1,v+e)).sub(p);const n=V().crossVectors(pu,pv).normalize();
+      add(p,shade(p,n,colFn(u,v),o),sz*(.85+R()*.3))}};
+  const up=V(0,1,0);
+  const LV=[[0.05,.55,.32,.105,.85,.7],[0.95,.75,.28,.095,.8,.5],[2.25,.5,.33,.11,.9,.75],[3.1,.7,.27,.09,.78,.55],[4.05,.55,.31,.10,.86,.7],[5.0,.85,.25,.085,.75,.45],[5.7,.62,.29,.095,.82,.65]];
+  rs(31);
+  LV.forEach(([az,el,Lp_,ts,open,tilt])=>{
+    const dir=V(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).normalize();
+    const side=V().crossVectors(dir,up).normalize();const nrm=V().crossVectors(side,dir).normalize();
+    // petiole: spoon blade with a thick, rounded midrib
+    const pet=(u,v)=>{const t=u;const w=(t<.8?(.006+.034*Math.sin(Math.min(1,t/.8)*Math.PI*.62)):(.04*(1-(t-.8)/.2)*.8+.005));const s2=(v*2-1);
+      return dir.clone().multiplyScalar(t*Lp_).addScaledVector(nrm,Math.sin(t*Math.PI)*.045+s2*s2*w*.5-Math.exp(-s2*s2*30)*.006).addScaledVector(side,s2*w)};
+    surf(pet,100,100,(u,v)=>{const s2=Math.abs(v*2-1);const mid=Math.exp(-s2*s2*40);const vein=.9+.1*Math.sin(s2*24-u*8);
+      return C('#26401c').lerp(C('#4f7430'),.3+u*.45).lerp(C('#8aa65a'),mid*.35).multiplyScalar(vein)},1.6,{spec:.35,gl:28});
+    // trap
+    const T0=pet(1,.5);const ax=V(dir.x,dir.y*.25+.05,dir.z).normalize();
+    const outw=V(dir.x,0,dir.z).normalize();const bis=up.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(outw,Math.sin(tilt)).normalize();
+    const bb=V().crossVectors(ax,bis).normalize();const L=ts*1.05;const TH=ts*.2;
+    for(const sd of [-1,1]){
+      const dS=bis.clone().multiplyScalar(Math.cos(open)).addScaledVector(bb,sd*Math.sin(open));
+      const inw=bis.clone().multiplyScalar(Math.sin(open)).addScaledVector(bb,-sd*Math.cos(open));
+      const sh=u=>Math.pow(Math.sin(u*Math.PI),.45);
+      const inner=(u,v)=>{const e=ts*1.05*sh(u)*v;const cup=ts*.34*sh(u)*v*v-ts*.07*Math.pow(v,9)*sh(u);return T0.clone().addScaledVector(ax,u*L).addScaledVector(dS,e).addScaledVector(inw,cup)};
+      // outer skin bulges outward -> fleshy thickness
+      const thick=(u,v)=>TH*Math.pow(Math.sin(u*Math.PI),.6)*(.25+.75*Math.sin(Math.min(1,v)*Math.PI*.5+Math.PI*.5*(1-v)) )*(1-.6*Math.pow(v,6));
+      const outer=(u,v)=>inner(u,v).addScaledVector(inw,-thick(u,v)-.002);
+      // inner face: deep crimson heart, glands, pink, then a pale margin
+      surf(inner,130,130,(u,v)=>{const gl=fbm(u*40,v*40,1)>.62?.72:1;let c=C('#5a0d1c').lerp(C('#a8243a'),Math.min(1,v*1.3)).lerp(C('#d0606a'),Math.max(0,v-.55)*1.6);
+        if(v>.86)c=c.lerp(C('#a8b25a'),Math.min(1,(v-.86)/.1));const vein=.85+.15*Math.pow(Math.abs(Math.sin(u*55)),3);return c.multiplyScalar(gl*vein)},1.5,{amb:.2,spec:.85,gl:60,k:.34});
+      // outer skin: muted green flushed with red toward the rim
+      surf(outer,110,110,(u,v)=>C('#2a4a1e').lerp(C('#5e7a34'),v*.6).lerp(C('#7a3a30'),Math.pow(v,4)*.35),1.5,{spec:.6,gl:45});
+      // rim band joining inner and outer (gives visible thickness at the edge)
+      for(let i=0;i<5000;i++){const u=.02+R()*.96,w=R();const p=inner(u,1).lerp(outer(u,1),w);const n=dS.clone().addScaledVector(inw,(w-.5)*.6).normalize();add(p,shade(p,n,C('#9aa64e').lerp(C('#b0504a'),w*.4),{spec:.7,gl:50}),1.3)}
+      // teeth: tapered 3D spines rooted in the rim, curving toward the opening
+      const NT=22;for(let i=1;i<NT;i++){const u=i/NT+(R()-.5)*.01;const q=inner(u,1).lerp(outer(u,1),.5);
+        const tan=inner(Math.min(1,u+.01),1).sub(inner(Math.max(0,u-.01),1)).normalize();
+        const out=dS.clone().addScaledVector(tan,(u-.5)*.25).addScaledVector(inw,-.15).normalize();const curl=inw.clone().multiplyScalar(-1);
+        const ln=ts*(.36+.22*Math.sin(u*Math.PI))*(.85+R()*.3);const rb=ts*.028;
+        const p1=V().crossVectors(out,tan).normalize(),p2=V().crossVectors(out,p1).normalize();
+        for(let j=0;j<240;j++){const t=Math.pow(R(),.8),a=R()*6.28;const r=rb*Math.pow(1-t,1.3);const cn=p1.clone().multiplyScalar(Math.cos(a)).addScaledVector(p2,Math.sin(a));
+          const p=q.clone().addScaledVector(out,ln*t).addScaledVector(curl,ln*.18*t*t).addScaledVector(cn,r);
+          const col=C('#7f9a46').lerp(C('#d0d89a'),t*.7).lerp(C('#c46a6a'),R()<.3?t*.4:0);add(p,shade(p,cn,col,{amb:.3,spec:.9,gl:30,k:.4,rim:.4}),.7+.4*(1-t))}}
+      // trigger hairs inside (three tiny dark spines)
+      for(let k=0;k<3;k++){const q=inner(.3+k*.2,.38);for(let j=0;j<40;j++){const t=R();const p=q.clone().addScaledVector(inw,ts*.12*t);add(p,C('#3a0a12'),.6)}}
+      // dew beads on the lobe, catching the light
+      for(let i=0;i<9;i++){const p=inner(R(),R()*.85).addScaledVector(inw,.003);Dew.add(p.x,p.y,p.z,C('#ffffff'),1.2+R()*1.6,.18+R()*.22)}}
+    for(let i=0;i<6;i++){const p=pet(.2+R()*.7,R()).addScaledVector(nrm,.003);Dew.add(p.x,p.y,p.z,C('#ffffff'),1.1+R()*1.1,.15+R()*.18)}
+  });
+  // young closed traps in the crown
+  rs(44);for(let k=0;k<2;k++){const a=k*2.6+.8;const base=V(Math.cos(a)*.015,0,Math.sin(a)*.015);const tip=V(Math.cos(a)*.05,.12+k*.03,Math.sin(a)*.05);
+    for(let i=0;i<2200;i++){const t=R(),ang=R()*6.28;const p=base.clone().lerp(tip,t);const r=.006+.016*Math.sin(Math.min(1,t*1.2)*Math.PI*.5);const n=V(Math.cos(ang),.2,Math.sin(ang)).normalize();
+      add(p.clone().addScaledVector(n,r),shade(p,n,C('#36561e').lerp(C('#7a2a34'),t>.6?.55:0)),1.4)}}
+  // moss creeping over the crown so the plant grows out of the ground
+  rs(47);const Moss=new Cloud();for(let i=0;i<6000;i++){const a=R()*6.28;const rr=.05+.09*fbm(Math.cos(a)*3,Math.sin(a)*3,2);const r=Math.pow(R(),.7)*rr;if(R()>1-r/rr*.7)continue;Moss.add(Math.cos(a)*r,.002+R()*.025*(1-r/rr),Math.sin(a)*r,C('#4f8a30').lerp(C('#a8d070'),R()*.5),.9+R()*.8,.05+R()*.12)}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(S,3));g.setAttribute('col',new THREE.Float32BufferAttribute(SC,3));g.setAttribute('size',new THREE.Float32BufferAttribute(SS,1));
+  const plant=new THREE.Group();plant.add(new THREE.Points(g,opaqueMat()),Dew.build(0,60),Moss.build(0,60));
+  plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;
+  }
+  gs.add(G.build(0,17),Lg.build(),T.build(0,30),Lt.build());
+  rs(91);gs.add(dust(1500,[10,5,10,2],['#e6ffe0','#bff4ff'],.8,.3).build(0,22));
+  gs.add(bokeh(10,1.4,2.4,1.2,['#c8ff9a','#ffd28a'],90,180,.03,.07).build(0,60));
+  GARDEN_READY=true;
+}
+
+// ======================= SCROLL ENGINE =======================
+const secs=[...document.querySelectorAll('main section')];
+const rail=document.getElementById('rail');
+secs.forEach((s,i)=>{if(s.dataset.s==='src')return;const a=document.createElement('a');a.href='#';a.className='mono';a.innerHTML=`<span>${s.dataset.t}</span><i></i>`;
+  a.onclick=e=>{e.preventDefault();scrollTo({top:s.offsetTop+(s.dataset.s==='hero'?0:innerHeight*.3),behavior:'smooth'})};rail.appendChild(a)});
+const railA=[...rail.children];
+// split headings into words for staggered reveal
+document.querySelectorAll('.split').forEach(el=>{let k=0;const walk=n=>{[...n.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(t=>{if(!t)return;if(/^\s+$/.test(t)){f.appendChild(document.createTextNode(t));return}const sp=document.createElement('span');sp.className='w';sp.style.transitionDelay=(k++*70)+'ms';sp.textContent=t;f.appendChild(sp)});c.replaceWith(f)}else if(c.nodeType===1){if(c.tagName==='EM'){c.classList.add('w');c.style.transitionDelay=(k++*70)+'ms';c.style.display='inline-block'}else walk(c)}})};walk(el)});
+const blks=[...document.querySelectorAll('.blk')];
+const labs=[...document.querySelectorAll('.lab')];
+const rows=[...document.querySelectorAll('.row')];
+const svg=document.getElementById('lines');
+const AT=new URLSearchParams(location.search).get('at');if(AT)document.body.classList.add('snap');let sTarget=scrollY,sCur=scrollY;addEventListener('scroll',()=>{if(!AT)sTarget=scrollY},{passive:true});
+let mx=0,my=0;addEventListener('pointermove',e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5});
+function prog(){const out={};let active=secs[0].dataset.s,ai=0;secs.forEach((s,i)=>{const top=s.offsetTop,h=s.offsetHeight;const p=(sCur-top)/Math.max(1,h-innerHeight);out[s.dataset.s]=p;if(sCur+innerHeight*.5>=top){active=s.dataset.s;ai=i}});out._a=active;out._i=ai;return out}
+const projectEl=(local,obj)=>{const v=local.clone();obj.localToWorld(v);v.project(cam);return [(v.x*.5+.5)*innerWidth,(-v.y*.5+.5)*innerHeight,v.z<1]};
+
+// camera keyframes
+const K={
+  hero:{p:V(0,.1,7.5),l:V(0,0,0)},
+  mindA:{p:V(-.25,.3,4.6),l:V(0,-.1,0)},mindB:{p:V(-.35,.22,3.25),l:V(-.1,-.05,0)},
+  input:{p:V(-.6,.15,3.9),l:V(-.3,-.05,0)},
+  two:{p:V(0,.0,4.7),l:V(0,-.05,0)},
+  become:{p:V(0,.1,4.0),l:V(0,0,0)},
+  gHigh:{p:V(0,2.4,6.2),l:V(0,.1,-.4)},gHero:{p:V(0,.6,1.85),l:V(0,.3,-.1)},
+  how:{p:V(-.62,.58,1.75),l:V(-.42,.3,-.05)},
+  bond:{p:V(-.2,.46,1.25),l:V(-.42,.28,0)},
+  future:{p:V(0,3.2,6.8),l:V(0,0,-1.2)}
+};
+const camP=V(0,0,7),camL=V();
+let counted=false;const SNAP=new URLSearchParams(location.search).has('at');
+function frame(t){
+  requestAnimationFrame(frame);
+  U.time.value=t*.001;
+  if(AT){const s=secs.find(x=>x.dataset.s===AT.split(':')[0]);sTarget=s.offsetTop+(s.offsetHeight-innerHeight)*(+(AT.split(':')[1]||.5))}
+  sCur+=(sTarget-sCur)*(SNAP?1:.08);
+  const P=prog();const A=P._a;
+  // chapter rail + header
+  railA.forEach((a,i)=>a.classList.toggle('on',i===P._i));
+  document.getElementById('chap').textContent=secs[P._i].dataset.t;document.getElementById('num').textContent=String(P._i).padStart(2,'0');
+  // text blocks
+  blks.forEach(b=>{const p=P[b.dataset.s];const on=p>=+b.dataset.a&&p<=+b.dataset.b&&b.dataset.s===A;b.classList.toggle('on',on)});
+  const brainWorld=['hero','mind','input','two','become'].includes(A);
+  let fade=0;
+  let target,look;
+  if(brainWorld&&BR){
+    rp.scene=brainScene;bloom.strength=.9;bloom.threshold=.08;
+    const pm=P.mind,pi=P.input,pt=P.two,pb=P.become;
+    let brainOp=1,tL=0,tR=0,streamOp=0,tint=new THREE.Color(1,1,1),pathOp=0;
+    if(A==='hero'){const p=clamp(P.hero);target=lerpV(K.hero.p,K.mindA.p,ss(.4,1,p));look=K.hero.l;brainOp=ss(.45,.95,p)}
+    else if(A==='mind'){target=lerpV(K.mindA.p,K.mindB.p,ss(0,.6,pm));look=lerpV(K.mindA.l,K.mindB.l,ss(0,.6,pm));pathOp=ss(.08,.2,pm)}
+    else if(A==='input'){target=lerpV(K.mindB.p,K.input.p,ss(0,.4,pi));look=lerpV(K.mindB.l,K.input.l,ss(0,.4,pi));streamOp=ss(.05,.3,pi);tint.setRGB(lerp(1,1.7,ss(.1,.7,pi)),lerp(1,.5,ss(.1,.7,pi)),lerp(1,.55,ss(.1,.7,pi)))}
+    else if(A==='two'){target=lerpV(K.input.p,K.two.p,ss(0,.25,pt));look=lerpV(K.input.l,K.two.l,ss(0,.25,pt));brainOp=1-ss(.02,.2,pt);tL=ss(.15,.35,pt);tR=ss(.35,.55,pt);streamOp=1-ss(0,.15,pt);tint.setRGB(1.7,.5,.55)}
+    else if(A==='become'){target=lerpV(K.two.p,K.become.p,ss(0,.3,pb));look=K.become.l;brainOp=ss(.05,.3,pb);tL=1-ss(0,.2,pb);tR=1-ss(0,.25,pb);tint.setRGB(.7,1.25,1.05);fade=ss(.72,.98,pb)}
+    setOp(BR,brainOp);setTint(BR,tint);setOp(THL,tL);setOp(THR,tR);setOp(STREAM.obj,streamOp);setOp(STREAM.lines,streamOp);setOp(PATHLINE,pathOp*brainOp);
+    THL.position.set(-1.15,-.02,0);THR.position.set(1.15,-.02,0);
+    BR.rotation.y=-.5+Math.sin(t*.00025)*.08+mx*.15;BR.rotation.x=.08+my*.08;
+    THL.rotation.y=THR.rotation.y=-.5+Math.sin(t*.0003)*.1;
+    ATMO_B.rotation.y=t*.00002;
+    // signal pulse through the brain
+    const head=A==='mind'?ss(.12,.9,pm):(A==='hero'?0:1);
+    const curve=PULSE.userData.curve,pos=PULSE.geometry.attributes.position;
+    for(let i=0;i<pos.count;i++){const tt=clamp(head-i*.004);const q=curve.getPoint(tt);pos.setXYZ(i,q.x,q.y,q.z)}pos.needsUpdate=true;
+    setOp(PULSE,A==='mind'&&head>0&&head<.999?1:0);
+    // regions + anchored labels
+    let lines='';
+    REG.forEach((r,i)=>{const at=(i+1)/6;const reached=A==='mind'&&head>=at-.01;const cur=reached&&(head<(i+2)/6-.01||i===4);
+      setOp(r,A==='mind'?(reached?(cur?1:.45)+.15*Math.sin(t*.004+i):0):(A==='input'?.25:0)*brainOp)});
+    labs.forEach((el,i)=>{const at=(i+1)/6;const reached=A==='mind'&&head>=at-.01&&pm<1.02;const cur=reached&&(head<(i+2)/6-.01||i===4);
+      el.classList.toggle('on',reached&&cur);el.classList.toggle('past',reached&&!cur);
+      if(reached){const [x,y]=projectEl(REGPTS[i],BR);const side=(i===1||i===2)?1:-1;const lx=x+side*(innerWidth<760?60:170),ly=y+(i%2?70:-80);
+        el.style.left=(side>0?lx+8:lx-8-el.offsetWidth)+'px';el.style.top=(ly-14)+'px';
+        if(cur)lines+=`<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}"/><circle cx="${x}" cy="${y}" r="3"/><circle cx="${x}" cy="${y}" r="9" fill="none" stroke="rgba(255,255,255,.4)"/>`}});
+    svg.innerHTML=lines;
+    // thermal label positions
+    if(A==='two'){const [xl,yl]=projectEl(V(0,-.8,0),THL),[xr,yr]=projectEl(V(0,-.8,0),THR);const tl=document.getElementById('thL'),tr=document.getElementById('thR');
+      tl.style.left=(xl-tl.offsetWidth/2)+'px';tl.style.top=Math.min(yl,innerHeight-tl.offsetHeight-60)+'px';tr.style.left=(xr-tr.offsetWidth/2)+'px';tr.style.top=Math.min(yr,innerHeight-tr.offsetHeight-60)+'px'}
+    // stream motion
+    if(streamOp>0){const sp=STREAM.obj.geometry.attributes.position;for(let i=0;i<STREAM.n;i++){let x=sp.getX(i)+STREAM.v[i];let y=sp.getY(i),z=sp.getZ(i);y+=(0-y)*.012+(Math.random()-.5)*.01;z+=(.3-z)*.012;
+        if(x>-.6){x=-4.2+Math.random()*.5;y=(Math.random()-.5)*1.6;z=(Math.random()-.5)*1.6}sp.setXYZ(i,x,y,z);const lp=STREAM.lines.geometry.attributes.position;lp.setXYZ(i*2,x-STREAM.v[i]*6,y,z);lp.setXYZ(i*2+1,x,y,z)}sp.needsUpdate=true;STREAM.lines.geometry.attributes.position.needsUpdate=true}
+  }else{
+    svg.innerHTML='';labs.forEach(l=>l.classList.remove('on','past'));
+    rp.scene=gardenScene;bloom.strength=.85;bloom.threshold=.08;
+    const pr=P.reveal,ph=P.how,pd=P.bond,pf=P.future;
+    if(A==='reveal'){target=lerpV(K.gHigh.p,K.gHero.p,ss(0,.55,pr));look=lerpV(K.gHigh.l,K.gHero.l,ss(0,.55,pr));fade=1-ss(0,.22,pr)}
+    else if(A==='how'){target=lerpV(K.gHero.p,K.how.p,ss(0,.25,ph));look=lerpV(K.gHero.l,K.how.l,ss(0,.25,ph))}
+    else if(A==='bond'){target=lerpV(K.how.p,K.bond.p,ss(0,.4,pd));look=lerpV(K.how.l,K.bond.l,ss(0,.4,pd))}
+    else {target=lerpV(K.bond.p,K.future.p,ss(0,.6,pf));look=lerpV(K.bond.l,K.future.l,ss(0,.6,pf));fade=A==='src'?.75:0}
+    if(PLANT){PLANT.rotation.y=.03+Math.sin(t*.0004)*.03;PLANT.rotation.z=Math.sin(t*.0007)*.008}
+    // pipeline progress
+    if(A==='how'){const k=ss(.06,.88,ph)*6;rows.forEach((r,i)=>r.classList.toggle('on',k>i+.05));
+      const first=rows[0],last=rows[rows.length-1];const y0=first.offsetTop+14,y1=last.offsetTop+14;document.getElementById('pdot').style.top=(lerp(y0,y1,clamp(k/6))-4)+'px';
+      if(ph>.55&&!counted){counted=true;document.querySelectorAll('.readout .bar').forEach(b=>b.style.width=b.dataset.w+'%');
+        document.querySelectorAll('.cnt').forEach(el=>{const v=+el.dataset.v,u=el.dataset.u||'',dec=v%1?1:0,t0=performance.now();const tick=n=>{const q=clamp((n-t0)/1400);const e=1-Math.pow(1-q,3);el.textContent=(v*e).toFixed(dec)+u;if(q<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)})}}
+  }
+  if(!target){target=K.hero.p;look=K.hero.l}
+  // parallax
+  const tp=target.clone().add(V(mx*.12,-my*.08,0));
+  camP.lerp(tp,SNAP?1:.12);camL.lerp(look,SNAP?1:.12);cam.position.copy(camP);cam.lookAt(camL);
+  document.getElementById('fade').style.opacity=fade;document.getElementById('scrim').style.opacity=(A==='how'||A==='bond')?1:0;
+  comp.render();
+}
+
+// ---------- boot: build progressively so the page appears fast ----------
+const nf=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+(async()=>{
+  await nf();buildBrain();
+  const at=new URLSearchParams(location.search).get('at');
+  if(at){const s=secs.find(x=>x.dataset.s===at.split(':')[0]);const f=+(at.split(':')[1]||.5);const y=s.offsetTop+(s.offsetHeight-innerHeight)*f;sTarget=sCur=y}
+  requestAnimationFrame(frame);
+  const L=document.getElementById('loader');L.style.opacity=0;setTimeout(()=>L.remove(),1300);
+  await nf();buildGarden();
+  document.title='Artificial Plant Intelligence';window.__ready=true;
+})();
+</script>
+</body></html>
