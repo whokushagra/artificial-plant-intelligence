@@ -84,6 +84,80 @@ svg#lines circle{fill:#fff}
 .cue{bottom:34px;text-align:center}
 .cue:after{content:'';display:block;width:1px;height:38px;margin:10px auto 0;background:linear-gradient(var(--ink),transparent);animation:cue 2.2s infinite}
 @keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* ---- how it thinks: stepper ---- */
+.steps{left:clamp(16px,6vw,96px);top:24vh;width:min(420px,32vw)}
+.st{position:relative;display:flex;gap:14px;padding:6px 0;opacity:.28;transition:opacity .6s}
+.st .n{flex:0 0 30px;height:30px;border:1px solid var(--faint);border-radius:50%;display:grid;place-items:center;font:400 10px 'JetBrains Mono';background:#020403;transition:all .6s}
+.st .t{font:400 16px Inter;letter-spacing:-.01em;padding-top:5px;transition:font-size .6s}
+.st .bd p,.st .tech{max-height:0;overflow:hidden;opacity:0;margin:0;transition:max-height .8s cubic-bezier(.2,.7,.1,1),opacity .6s,margin .6s}
+.st .bd p{font:300 15px/1.5 Inter;color:var(--dim)}
+.st .tech{font:300 10.5px/1.6 'JetBrains Mono';letter-spacing:.06em;text-transform:uppercase;color:#cfe8c0}
+.st.past{opacity:.5}
+.st.on{opacity:1}
+.st.on .n{border-color:var(--green);color:var(--green);box-shadow:0 0 18px rgba(182,240,138,.35)}
+.st.on .t{font-size:24px}
+.st.on .bd p{max-height:120px;opacity:1;margin-top:6px}
+.st.on .tech{max-height:60px;opacity:.85;margin-top:8px}
+/* sense tags */
+.stag{position:absolute;opacity:0;transition:opacity .6s;color:var(--c);white-space:nowrap}
+.stag:before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);margin-right:8px;vertical-align:middle}
+.stag.on{opacity:1}
+/* module panels */
+.modp{position:absolute;right:clamp(16px,4vw,72px);top:30vh;width:min(330px,30vw);opacity:0;transform:translateY(14px);filter:blur(4px);transition:opacity .7s,transform .9s cubic-bezier(.2,.7,.1,1),filter .7s;
+  border:1px solid var(--faint);background:rgba(3,6,5,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:16px 16px 14px}
+.modp.on{opacity:1;transform:none;filter:none}
+.modp .ph{color:var(--green);margin-bottom:12px}
+.modp .pf{margin-top:12px;opacity:.5;text-transform:none;letter-spacing:.03em}
+.modp:before{content:'+';position:absolute;left:-6px;top:-13px;font:200 18px Inter;opacity:.7}
+.log{height:132px;overflow:hidden;mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+.log .rows{animation:logup 7s linear infinite}
+.log .rows div{font:300 10.5px/22px 'JetBrains Mono';letter-spacing:.02em;text-transform:none;color:var(--ink);white-space:nowrap}
+.log .rows span{color:var(--dim);margin-right:8px}
+@keyframes logup{to{transform:translateY(-132px)}}
+.jg{display:grid;grid-template-columns:70px 1fr;row-gap:2px;margin-bottom:11px}
+.jg .jn{opacity:.6;padding-top:2px}
+.jg .tr{position:relative;height:16px;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;align-items:center}
+.jg .tr i{height:3px;background:rgba(238,242,239,.16)}
+.jg .mk{position:absolute;top:2px;left:0;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(182,240,138,.9);transition:left 1.4s cubic-bezier(.2,.7,.1,1) .3s}
+.modp.on .jg .mk{left:var(--x)}
+.jg .jv{grid-column:2;text-transform:none;letter-spacing:.02em;font:italic 400 16px 'Instrument Serif';color:#e8f5d8;opacity:0;transition:opacity .6s 1.2s}
+.modp.on .jg .jv{opacity:1}
+.wsvg{width:100%;height:auto;display:block;margin-bottom:8px}
+.wrow{display:flex;gap:10px;text-transform:none;letter-spacing:.02em;font:300 12px/1.9 Inter}
+.wrow span{width:64px;font:400 10px/2.2 'JetBrains Mono';letter-spacing:.12em;text-transform:uppercase;opacity:.55}
+.ins{display:flex;gap:6px;margin-bottom:14px}
+.ins span{flex:1;text-align:center;border:1px solid var(--faint);padding:6px 0;animation:inpulse 2.4s infinite}
+.ins span:nth-child(2){animation-delay:.3s}.ins span:nth-child(3){animation-delay:.6s}
+@keyframes inpulse{0%,100%{border-color:var(--faint)}40%{border-color:var(--green);color:var(--green)}}
+.jb{display:grid;grid-template-columns:96px 1fr 40px;align-items:center;margin-bottom:8px}
+.jb .bt{position:relative;height:6px;background:rgba(238,242,239,.1)}
+.jb .bt b{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,#6fe0d8,#b6f08a);transition:width 1.4s cubic-bezier(.2,.7,.1,1) .4s}
+.modp.on .jb .bt b{width:var(--w)}
+.jb .bt i{position:absolute;left:70%;top:-5px;bottom:-5px;width:1px;background:#ffd28a}
+.jb .jp{text-align:right}
+.thr{color:#ffd28a;margin:-2px 0 0 calc(96px + (100% - 136px)*.7 - 30px);font-size:9.5px}
+.verd{margin-top:14px;text-transform:none;letter-spacing:0;font:italic 400 20px 'Instrument Serif';opacity:0;transition:opacity .8s 1.8s}
+.modp.on .verd{opacity:1}
+.venn{width:100%;height:auto}
+.venn circle{fill:rgba(182,240,138,.06);stroke:rgba(238,242,239,.45);stroke-width:1;transform-origin:150px 100px;animation:breathe 4s ease-in-out infinite}
+.venn circle:nth-child(2){animation-delay:.6s}.venn circle:nth-child(3){animation-delay:1.2s}
+@keyframes breathe{50%{fill:rgba(182,240,138,.16)}}
+.venn text{fill:var(--ink);font:400 10px 'JetBrains Mono';letter-spacing:.1em;text-transform:uppercase}
+.venn .core{fill:var(--green);font:italic 400 17px 'Instrument Serif';letter-spacing:0;text-transform:none}
+.pq{text-transform:none;letter-spacing:.01em;font:300 13px/1.55 Inter;color:var(--dim);margin-top:6px}
+.bub{text-transform:none;letter-spacing:.01em;font:300 14px/1.4 Inter;padding:8px 12px;border:1px solid var(--faint);margin-bottom:8px;max-width:88%;opacity:0;transform:translateY(6px);transition:all .6s}
+.bub.you{margin-left:auto;color:var(--dim);transition-delay:.2s}
+.bub.it{font:italic 400 18px 'Instrument Serif';border-color:rgba(70,224,138,.45);color:#dfffe9;transition-delay:1s}
+.bub.it.two{transition-delay:2.2s}
+.modp.on .bub{opacity:1;transform:none}
+/* face */
+#face{position:absolute;opacity:0;transition:opacity 1s;pointer-events:none}
+#face svg{width:100%;height:100%;overflow:visible}
+#face path{fill:none;stroke:#46e08a;stroke-width:.014;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(70,224,138,.7));stroke-dasharray:1;stroke-dashoffset:1}
+#flow{animation:talk 1.1s ease-in-out infinite;transform-box:view-box}
+@keyframes talk{0%,100%{transform:translateY(0)}35%{transform:translateY(.05px)}50%{transform:translateY(.05px)}}
+@media (max-width:760px){.steps{width:auto;right:16px;top:auto;bottom:16px}.st:not(.on){display:none}.modp{display:none}}
+
 @media (max-width:760px){
   #rail{display:none}.top{left:16px;right:16px}
   .pipe{left:16px;right:16px;width:auto;top:auto;bottom:18px;transform:none}
@@ -149,27 +223,91 @@ body.snap *{transition:none!important}
   <div class="blk center" data-s="reveal" data-a=".6" data-b="1.01" style="bottom:7vh;top:auto"><p class="sub" style="font-size:clamp(15px,1.3vw,20px);max-width:620px">A plant with a mind people can understand, and one that learns to understand you.</p></div>
 
   <!-- 6 HOW IT THINKS -->
-  <div class="blk" data-s="how" data-a="0" data-b="1.01" style="left:clamp(16px,6vw,96px);top:12vh"><p class="h split">How it <em>thinks.</em></p><p class="sub">The same path as yours, rebuilt for a plant.</p></div>
-  <div class="blk pipe" data-s="how" data-a=".04" data-b="1.01" id="pipe">
-    <div class="rail2"></div><div class="dot" id="pdot"></div>
-    <div class="row"><div class="n">01</div><div class="t">Sense</div><div class="hu">like your senses</div><div class="tech">Multi-sensor perception · light · soil moisture · air &amp; root temperature · humidity</div></div>
-    <div class="row"><div class="n">02</div><div class="t">Signal</div><div class="hu">like nerve impulses</div><div class="tech">Edge microcontroller streams live telemetry every 2 s</div></div>
-    <div class="row"><div class="n">03</div><div class="t">Sort</div><div class="hu">like sensory filtering</div><div class="tech">Neural signal classifiers · one trained judge per sense, taught on plant-science ranges</div></div>
-    <div class="row"><div class="n">04</div><div class="t">Context + memory</div><div class="hu">like past experience</div><div class="tech">Context engine · time, season, weather + long-term conversation memory</div></div>
-    <div class="row"><div class="n">05</div><div class="t">Decide</div><div class="hu">like the prefrontal cortex</div><div class="tech">Decision cortex weighs the evidence and admits doubt when it is less than 70% sure</div></div>
-    <div class="row"><div class="n">06</div><div class="t">Speak</div><div class="hu">like language</div><div class="tech">On-device language model · speech in, voice out · fully local, no cloud</div></div>
+  <div class="blk" data-s="how" data-a="0" data-b="1.01" style="left:clamp(16px,6vw,96px);top:10vh"><p class="h split">How it <em>thinks.</em></p></div>
+  <div class="blk steps" data-s="how" data-a=".01" data-b="1.01" id="steps">
+    <div class="st"><div class="n">01</div><div class="bd"><div class="t">Sense</div><p>It feels its world. We look inside the plant: every sense becomes a line of light.</p><div class="tech">Five live channels · light · soil moisture · air &amp; root temperature · humidity</div></div></div>
+    <div class="st"><div class="n">02</div><div class="bd"><div class="t">Signal</div><p>Many feelings braid into one signal, like nerves into a spine.</p><div class="tech">Edge microcontroller · streams telemetry every 2 s</div></div></div>
+    <div class="st"><div class="n">03</div><div class="bd"><div class="t">The seed</div><p>Everything flows into its mind. Not a box, not a human brain. A seed.</p><div class="tech">The plant's own brain · where every step below happens</div></div></div>
+    <div class="st"><div class="n">04</div><div class="bd"><div class="t">Memory</div><p>It remembers. Every reading is written down and kept.</p><div class="tech">Continuous logging · a living timeline of its days</div></div></div>
+    <div class="st"><div class="n">05</div><div class="bd"><div class="t">Judge</div><p>It makes sense of each feeling, one sense at a time.</p><div class="tech">Neural classifiers · one trained judge per sense, taught on plant-science ranges</div></div></div>
+    <div class="st"><div class="n">06</div><div class="bd"><div class="t">World</div><p>It knows its place in time: day or night, the weather, the season.</p><div class="tech">Context engine · time of day · weather · seasonal rhythm</div></div></div>
+    <div class="st"><div class="n">07</div><div class="bd"><div class="t">Decide</div><p>Like your prefrontal cortex, it weighs it all and decides how it feels. If it isn't sure, it says so.</p><div class="tech">Decision cortex · admits doubt below 70% confidence</div></div></div>
+    <div class="st"><div class="n">08</div><div class="bd"><div class="t">Personality</div><p>It stays itself. It knows what it is, feels only what is real, and never pretends.</p><div class="tech">Species knowledge + live data + a character that cannot break</div></div></div>
+    <div class="st"><div class="n">09</div><div class="bd"><div class="t">Voice</div><p>It finds the words, and listens back.</p><div class="tech">On-device language model · speech in, voice out · fully local</div></div></div>
+    <div class="st"><div class="n">10</div><div class="bd"><div class="t">And it talks back.</div><p>The seed becomes a face.</p></div></div>
   </div>
-  <div class="blk readout mono" data-s="how" data-a=".55" data-b="1.01">
-    <div style="color:var(--green)">▸ Live perception · 11 Nov, 15:58</div>
-    <div class="gr">
-      <span style="opacity:.6">Light</span><div class="bar" data-w="82"></div><b class="cnt" data-v="1914">0</b>
-      <span style="opacity:.6">Soil</span><div class="bar" data-w="63"></div><b class="cnt" data-v="63" data-u="%">0</b>
-      <span style="opacity:.6">Air</span><div class="bar" data-w="58"></div><b class="cnt" data-v="24.2" data-u="°">0</b>
-      <span style="opacity:.6">Humidity</span><div class="bar" data-w="58"></div><b class="cnt" data-v="58" data-u="%">0</b>
-    </div>
-    <div class="say">“A little warm, but okay.”</div>
-    <div style="margin-top:8px;opacity:.55;text-transform:none;letter-spacing:.02em">No feeling is made up. Every word starts from a real sensor.</div>
+  <!-- sense tags -->
+  <div class="stag mono" data-k="0" style="--c:#ffd24a">Light</div>
+  <div class="stag mono" data-k="1" style="--c:#4aa8ff">Soil moisture</div>
+  <div class="stag mono" data-k="2" style="--c:#ff8a3a">Root temperature</div>
+  <div class="stag mono" data-k="3" style="--c:#ff5f8a">Air temperature</div>
+  <div class="stag mono" data-k="4" style="--c:#5ff0d0">Humidity</div>
+  <!-- module panels (one at a time) -->
+  <div class="modp mono" data-m="0">
+    <div class="ph">▸ Memory · writing</div>
+    <div class="log"><div class="rows">
+      <div><span>15:57:50</span> light 1902 · soil 63% · air 24.1° · rh 58%</div>
+      <div><span>15:57:52</span> light 1908 · soil 63% · air 24.1° · rh 58%</div>
+      <div><span>15:57:54</span> light 1911 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:57:56</span> light 1910 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:57:58</span> light 1914 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:58:00</span> light 1914 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:57:50</span> light 1902 · soil 63% · air 24.1° · rh 58%</div>
+      <div><span>15:57:52</span> light 1908 · soil 63% · air 24.1° · rh 58%</div>
+      <div><span>15:57:54</span> light 1911 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:57:56</span> light 1910 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:57:58</span> light 1914 · soil 63% · air 24.2° · rh 58%</div>
+      <div><span>15:58:00</span> light 1914 · soil 63% · air 24.2° · rh 58%</div>
+    </div></div>
+    <div class="pf">Real readings · 11 Nov</div>
   </div>
+  <div class="modp mono" data-m="1">
+    <div class="ph">▸ Judges · one per sense</div>
+    <div class="jg" style="--x:75%"><div class="jn">Light</div><div class="tr"><i></i><i></i><i></i><i></i><i></i><b class="mk"></b></div><div class="jv">plenty of sun</div></div>
+    <div class="jg" style="--x:50%"><div class="jn">Soil</div><div class="tr"><i></i><i></i><i></i><i></i><i></i><b class="mk"></b></div><div class="jv">nicely moist</div></div>
+    <div class="jg" style="--x:70%"><div class="jn">Air</div><div class="tr"><i></i><i></i><i></i><i></i><i></i><b class="mk"></b></div><div class="jv">a little warm</div></div>
+    <div class="jg" style="--x:50%"><div class="jn">Humidity</div><div class="tr"><i></i><i></i><i></i><i></i><i></i><b class="mk"></b></div><div class="jv">comfortable</div></div>
+  </div>
+  <div class="modp mono" data-m="2">
+    <div class="ph">▸ World · time · weather · season</div>
+    <svg class="wsvg" viewBox="0 0 300 130">
+      <line x1="10" y1="104" x2="290" y2="104" stroke="rgba(238,242,239,.3)"/>
+      <path id="arc" d="M30 104 A120 86 0 0 1 270 104" fill="none" stroke="rgba(238,242,239,.25)" stroke-dasharray="2 5"/>
+      <g><circle r="9" fill="#ffd24a" style="filter:drop-shadow(0 0 6px #ffd24a)"/><animateMotion dur="8s" repeatCount="indefinite"><mpath href="#arc"/></animateMotion><animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.45;.5;.95;1" dur="8s" repeatCount="indefinite"/></g>
+      <g opacity="0"><circle r="8" fill="#e8ecf5"/><circle r="8" cx="4" fill="#070b0a"><animate attributeName="cx" values="12;4;-4;-12;-4;4;12" dur="8s" repeatCount="indefinite"/></circle><animateMotion dur="8s" begin="4s" repeatCount="indefinite"><mpath href="#arc"/></animateMotion><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.45;.5;.95;1" dur="8s" repeatCount="indefinite"/></g>
+      <g fill="none" stroke="rgba(238,242,239,.7)" stroke-width="1.2"><path d="M0 0 a8 8 0 0 1 14 -6 a10 10 0 0 1 18 4 a7 7 0 0 1 2 13 h-34 a7 7 0 0 1 0 -11z"/><animateTransform attributeName="transform" type="translate" values="40 40;210 40;40 40" dur="16s" repeatCount="indefinite"/></g>
+      <g stroke="#cfe9ff" stroke-width="1"><path d="M0 -5 v10 M-4.3 -2.5 l8.6 5 M-4.3 2.5 l8.6 -5"/><animateTransform attributeName="transform" type="translate" values="240 10;232 100" dur="5s" repeatCount="indefinite"/></g>
+    </svg>
+    <div class="wrow"><span>Time</span>afternoon · daylight</div>
+    <div class="wrow"><span>Weather</span>outside · cloudy, cool</div>
+    <div class="wrow"><span>Season</span>late autumn · rest is coming</div>
+  </div>
+  <div class="modp mono" data-m="3">
+    <div class="ph">▸ Decide · the plant's prefrontal cortex</div>
+    <div class="ins"><span>Memory</span><span>Judges</span><span>World</span></div>
+    <div class="jb"><div class="jl">Rest</div><div class="bt"><b style="--w:50%"></b><i></i></div><div class="jp">0.50</div></div>
+    <div class="jb"><div class="jl">Need nothing</div><div class="bt"><b style="--w:50%"></b><i></i></div><div class="jp">0.50</div></div>
+    <div class="thr">sure at 0.70</div>
+    <div class="verd">“Not quite sure how I feel.”</div>
+    <div class="pf">Real decision · 11 Nov · it said so honestly</div>
+  </div>
+  <div class="modp mono" data-m="4">
+    <div class="ph">▸ Personality · how it stays itself</div>
+    <svg class="venn" viewBox="0 0 300 200">
+      <circle cx="115" cy="80" r="58"/><circle cx="185" cy="80" r="58"/><circle cx="150" cy="138" r="58"/>
+      <text x="88" y="62">Knowledge</text><text x="188" y="62">Live data</text><text x="150" y="172" text-anchor="middle">Character</text>
+      <text x="150" y="104" text-anchor="middle" class="core">its voice</text>
+    </svg>
+    <div class="pq">Knows it is a Venus flytrap. Feels only what its sensors say. Warm, curious, and never pretends.</div>
+  </div>
+  <div class="modp mono" data-m="5">
+    <div class="ph">▸ Voice · listens and speaks</div>
+    <div class="bub you">How are you today?</div>
+    <div class="bub it"><span>A little warm, but okay.</span></div>
+    <div class="bub it two"><span>I would love to hear about your world.</span></div>
+    <div class="pf">Real words · on-device · no cloud</div>
+  </div>
+  <div id="face"><svg viewBox="-1.05 -0.35 2.1 1.4"><path id="fbase" pathLength="1"/><path id="flow" pathLength="1"/></svg></div>
 
   <!-- 7 RELATIONSHIP -->
   <div class="blk" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:22vh;max-width:520px"><p class="h split">It gets to <em>know</em> you.</p>
@@ -193,7 +331,7 @@ body.snap *{transition:none!important}
   <section data-s="two" data-t="Two brains" style="height:300vh"></section>
   <section data-s="become" data-t="Become" style="height:200vh"></section>
   <section data-s="reveal" data-t="Introducing" style="height:260vh"></section>
-  <section data-s="how" data-t="How it thinks" style="height:440vh"></section>
+  <section data-s="how" data-t="How it thinks" style="height:1100vh"></section>
   <section data-s="bond" data-t="Relationship" style="height:260vh"></section>
   <section data-s="future" data-t="Future" style="height:240vh"></section>
   <section data-s="src" data-t="Sources" style="height:130vh">
@@ -229,9 +367,9 @@ const fbm=(x,y,z)=>noise(x,y,z)*.6+noise(x*2.1,y*2.1,z*2.1)*.3+noise(x*4.3,y*4.3
 
 // ---------- shared uniforms + materials ----------
 const U={uScale:{value:1},time:{value:0}};
-const opaqueMat=()=>new THREE.ShaderMaterial({uniforms:{uScale:U.uScale},
+const opaqueMat=()=>new THREE.ShaderMaterial({transparent:true,uniforms:{uScale:U.uScale,op:{value:1}},
   vertexShader:`attribute float size;attribute vec3 col;varying vec3 vC;uniform float uScale;void main(){vC=col;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
-  fragmentShader:`varying vec3 vC;void main(){vec2 p=gl_PointCoord-.5;if(length(p)>.5)discard;gl_FragColor=vec4(vC,1.);}`});
+  fragmentShader:`varying vec3 vC;uniform float op;void main(){vec2 p=gl_PointCoord-.5;if(length(p)>.5||op<.01)discard;gl_FragColor=vec4(vC,op);}`});
 const ptsMat=(near,far)=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
   uniforms:{fNear:{value:near},fFar:{value:far},op:{value:1},tint:{value:new THREE.Color(1,1,1)},uScale:U.uScale},
   vertexShader:`attribute float size;attribute float alpha;attribute vec3 col;varying vec3 vC;varying float vA;uniform float fNear,fFar,uScale;
@@ -482,7 +620,7 @@ function buildGarden(){
   rs(47);const Moss=new Cloud();for(let i=0;i<6000;i++){const a=R()*6.28;const rr=.05+.09*fbm(Math.cos(a)*3,Math.sin(a)*3,2);const r=Math.pow(R(),.7)*rr;if(R()>1-r/rr*.7)continue;Moss.add(Math.cos(a)*r,.002+R()*.025*(1-r/rr),Math.sin(a)*r,C('#4f8a30').lerp(C('#a8d070'),R()*.5),.9+R()*.8,.05+R()*.12)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(S,3));g.setAttribute('col',new THREE.Float32BufferAttribute(SC,3));g.setAttribute('size',new THREE.Float32BufferAttribute(SS,1));
   const plant=new THREE.Group();plant.add(new THREE.Points(g,opaqueMat()),Dew.build(0,60),Moss.build(0,60));
-  plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;
+  plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;buildHow(plant,S,[plant.children[1],plant.children[2]]);
   }
   gs.add(G.build(0,17),Lg.build(),T.build(0,30),Lt.build());
   rs(91);gs.add(dust(1500,[10,5,10,2],['#e6ffe0','#bff4ff'],.8,.3).build(0,22));
@@ -491,6 +629,128 @@ function buildGarden(){
 }
 
 // ======================= SCROLL ENGINE =======================
+// ======================= HOW IT THINKS: x-ray -> signals -> seed brain -> face =======================
+// face line (2D, y up): a line, a loop eye, toothed lips, a tail that drops down
+function faceShape(){
+  const base=[],low=[];const push=(a,x,y)=>a.push([x,y]);
+  for(let x=-1;x<=-.45;x+=.02)push(base,x,0);
+  for(let a=0;a<=Math.PI*2+.01;a+=.08)push(base,-.45+Math.sin(a)*.1,.1-Math.cos(a)*.1);
+  for(let x=-.45;x<=-.3;x+=.02)push(base,x,0);
+  const lip=(t,s)=>{const env=Math.sin(t*Math.PI);let y=s*env*(.075+.018*Math.sin(t*22));const f=(t*9)%1;if(t>.08&&t<.92&&f>.38&&f<.62)y-=s*env*.04;return y};
+  for(let t=0;t<=1.0001;t+=.006)push(base,-.3+t*.75,lip(t,1));
+  for(let x=.45;x<=.6;x+=.02)push(base,x,0);
+  for(let a=0;a<=Math.PI/2;a+=.1)push(base,.6+Math.sin(a)*.15,-.15+Math.cos(a)*.15);
+  for(let y=-.15;y>=-1;y-=.03)push(base,.75,y);
+  for(let t=0;t<=1.0001;t+=.006)push(low,-.3+t*.75,lip(t,-1));
+  const d=a=>a.map((p,i)=>(i?'L':'M')+p[0].toFixed(4)+' '+(-p[1]).toFixed(4)).join(' ');
+  return {base,low,dBase:d(base),dLow:d(low)};
+}
+const FACE=faceShape();
+document.getElementById('fbase').setAttribute('d',FACE.dBase);document.getElementById('flow').setAttribute('d',FACE.dLow);
+const SEEDC=V(0,.2,0),FSC=.2;           // seed centre (plant-local) and face scale
+const SENSECOL=['#ffd24a','#4aa8ff','#ff8a3a','#ff5f8a','#5ff0d0'];
+const SENSEO=[V(.2,.3,.06),V(0,-.1,.03),V(.09,-.05,.1),V(-.3,.26,.06),V(-.16,.18,-.18)];
+const MERGE=V(0,.5,0);
+const MODPOS=[V(-.05,.26,.04),V(.05,.25,.04),V(0,.32,.03),V(0,.19,.05),V(0,.12,.04),V(0,.065,.04)]; // memory, judges, world, decide, personality, voice
+const MODCOL=['#9fd8ff','#b6f08a','#ffd28a','#ffffff','#ff9ad5','#46e08a'];
+let HOW=null;
+const morphMat=()=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  uniforms:{morph:{value:0},morph2:{value:0},op:{value:0},uScale:U.uScale,time:U.time},
+  vertexShader:`attribute vec3 seedp;attribute vec3 facep;attribute float size;attribute float rnd;uniform float morph,morph2,uScale,time;varying vec3 vC;varying float vA;
+  void main(){float m=smoothstep(rnd*.35,rnd*.35+.65,morph);float m2=smoothstep(rnd*.3,rnd*.3+.7,morph2);
+    vec3 p=mix(position,seedp,m);float sw=m*(1.-m);p.x+=sin(time*2.+rnd*40.)*sw*.07;p.z+=cos(time*2.+rnd*40.)*sw*.07;p.y+=sw*.06;
+    vec3 c=vec3(0.,.2,0.);p=mix(p,c+(p-c)*(1.+.025*sin(time*1.8)),m*(1.-m2));
+    p=mix(p,facep,m2);
+    vec3 xr=mix(vec3(.55,.85,1.),vec3(1.,.82,.55),m);vC=mix(xr,vec3(.27,.88,.54),m2);
+    vA=(.5+.5*rnd)*mix(1.,.14,m)*(1.-.8*m2);float shell=smoothstep(.07,.1,length((seedp-c)*vec3(1.,.65,1.)));vA*=mix(1.,mix(.18,1.5,shell),m);
+    vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(1.-m*.35)*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`uniform float op;varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord-.5;float r=length(q);if(r>.5)discard;float a=pow(1.-r*2.,1.6)*op*vA*.55;gl_FragColor=vec4(vC*a,a);}`});
+function buildHow(plant,S,extras){
+  HOW={plant,extras,opq:plant.children[0]};
+  // morph layer: the plant's own points -> seed -> face
+  const n=S.length/3,P=[],SE=[],FA=[],SZ=[],RN=[];const fp=FACE.base.concat(FACE.low);
+  rs(901);for(let i=0;i<n;i+=3){P.push(S[i*3],S[i*3+1],S[i*3+2]);
+    const y=R()*2-1,th=R()*6.2832,sh=R()<.82?1:Math.cbrt(R());const w=Math.sqrt(1-y*y)*(1-.42*y)*sh;
+    SE.push(SEEDC.x+Math.cos(th)*w*.11,SEEDC.y+y*.17*sh,SEEDC.z+Math.sin(th)*w*.11);
+    const f=fp[(R()*fp.length)|0];FA.push(SEEDC.x+f[0]*FSC+(R()-.5)*.004,SEEDC.y+f[1]*FSC+(R()-.5)*.004,.02+(R()-.5)*.004);
+    SZ.push(.9+R()*.9);RN.push(R())}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('seedp',new THREE.Float32BufferAttribute(SE,3));g.setAttribute('facep',new THREE.Float32BufferAttribute(FA,3));
+  g.setAttribute('size',new THREE.Float32BufferAttribute(SZ,1));g.setAttribute('rnd',new THREE.Float32BufferAttribute(RN,1));
+  HOW.morph=new THREE.Points(g,morphMat());HOW.morph.frustumCulled=false;plant.add(HOW.morph);
+  // sense lines: each sense rises out of the plant in its own colour, then braids into one
+  HOW.curves=SENSEO.map(o=>new THREE.CatmullRomCurve3([o,V(o.x*.6,o.y*.5+.3,o.z*.6),V(o.x*.2,.5,o.z*.2),MERGE]));
+  HOW.lines=HOW.curves.map((cv,k)=>{const pts=cv.getPoints(120);const pa=[],ca=[];const c=C(SENSECOL[k]);pts.forEach(p=>{pa.push(p.x,p.y,p.z);ca.push(c.r*.8,c.g*.8,c.b*.8)});
+    const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(pa,3));lg.setAttribute('color',new THREE.Float32BufferAttribute(ca,3));
+    const ln=new THREE.Line(lg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));ln.frustumCulled=false;plant.add(ln);return ln});
+  // braid: five strands twisting from the merge point down into the seed's place
+  const br=new Lines();for(let k=0;k<5;k++){const pts=[];for(let s=0;s<=1.0001;s+=.01){const c=MERGE.clone().lerp(SEEDC,s);const a=k/5*6.283+s*14,r=.014*(1-s*.6);pts.push(c.add(V(Math.cos(a)*r,0,Math.sin(a)*r)))}br.poly(pts,C(SENSECOL[k]),.9,false)}
+  HOW.braid=br.build();HOW.braid.frustumCulled=false;plant.add(HOW.braid);
+  // flowing particles on the sense lines + braid
+  const fN=5*40+60,fp2=new Float32Array(fN*3),fc=[],fs=[],fa=[];for(let i=0;i<fN;i++){const c=C(i<200?SENSECOL[(i/40)|0]:'#ffffff');fc.push(c.r,c.g,c.b);fs.push(i<200?3:3.5);fa.push(.9)}
+  const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.BufferAttribute(fp2,3));fg.setAttribute('col',new THREE.Float32BufferAttribute(fc,3));fg.setAttribute('size',new THREE.Float32BufferAttribute(fs,1));fg.setAttribute('alpha',new THREE.Float32BufferAttribute(fa,1));
+  HOW.flow=new THREE.Points(fg,ptsMat(0,60));HOW.flow.frustumCulled=false;plant.add(HOW.flow);HOW.fN=fN;
+  // inside the seed: veins of light + six modules connected top to bottom
+  const vein=new Lines();const inSeed=p=>{const y=(p.y-SEEDC.y)/.17;if(Math.abs(y)>.95)return false;const w=Math.sqrt(1-y*y)*(1-.42*y)*.11;return Math.hypot(p.x-SEEDC.x,p.z-SEEDC.z)<w*.92};
+  rs(910);for(let k=0;k<70;k++){let p=SEEDC.clone().add(V((R()-.5)*.08,(R()-.5)*.24,(R()-.5)*.08));if(!inSeed(p))continue;let d=V(R()-.5,R()-.5,R()-.5).normalize();const pts=[p.clone()];
+    for(let i=0;i<30+R()*40;i++){d.add(V(R()-.5,R()-.5,R()-.5).multiplyScalar(.6)).normalize();const q=p.clone().addScaledVector(d,.006);if(!inSeed(q)){d.negate();continue}p=q;pts.push(p.clone())}
+    vein.poly(pts,C(['#ffe2a8','#b6f08a','#ffffff'][k%3]),.25+R()*.3)}
+  // module links: world -> memory/judges -> decide -> personality -> voice
+  const link=(a,b,c)=>{const pts=[];for(let s=0;s<=1.0001;s+=.05){const p=a.clone().lerp(b,s);p.x+=Math.sin(s*Math.PI)*.012;pts.push(p)}vein.poly(pts,C(c),.6,false)};
+  link(MODPOS[2],MODPOS[0],'#ffd28a');link(MODPOS[2],MODPOS[1],'#ffd28a');link(MODPOS[0],MODPOS[3],'#9fd8ff');link(MODPOS[1],MODPOS[3],'#b6f08a');link(MODPOS[3],MODPOS[4],'#ffffff');link(MODPOS[4],MODPOS[5],'#ff9ad5');
+  HOW.veins=vein.build();HOW.veins.frustumCulled=false;plant.add(HOW.veins);
+  HOW.mods=MODPOS.map((p,i)=>{const c=new Cloud();c.add(p.x,p.y,p.z,C(MODCOL[i]),40,.5);c.add(p.x,p.y,p.z,C('#ffffff'),6,1);
+    rs(920+i);for(let k=0;k<120;k++){const d=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(R()*.022);c.add(p.x+d.x,p.y+d.y,p.z+d.z,C(MODCOL[i]),1.6+R()*1.6,.7)}
+    const o=c.build(0,60);o.frustumCulled=false;plant.add(o);return o});
+  howReset();
+}
+const stEls=[...document.querySelectorAll('.st')],stagEls=[...document.querySelectorAll('.stag')],modEls=[...document.querySelectorAll('.modp')],faceEl=document.getElementById('face');
+function dimGarden(f){gardenScene.children.forEach(o=>{if(o===PLANT)return;o.traverse(q=>{const m=q.material;if(!m)return;if(m.uniforms&&m.uniforms.tint)m.uniforms.tint.value.setScalar(f);else if(m.isLineBasicMaterial)m.color.setScalar(f)})})}
+function howReset(){if(!HOW)return;HOW.opq.material.uniforms.op.value=1;HOW.extras.forEach(e=>setOp(e,1));setOp(HOW.morph,0);HOW.lines.forEach(l=>setOp(l,0));setOp(HOW.braid,0);setOp(HOW.flow,0);setOp(HOW.veins,0);HOW.mods.forEach(m=>setOp(m,0));dimGarden(1);
+  stagEls.forEach(e=>e.classList.remove('on'));modEls.forEach(e=>e.classList.remove('on'));faceEl.style.opacity=0}
+// step ranges along the section (0..1)
+const HS=[.02,.12,.22,.33,.43,.53,.63,.73,.83,.91,1.0];
+const KH={xA:{p:V(-.6,.52,1.7),l:V(-.4,.3,-.05)},xB:{p:V(-.5,.62,1.55),l:V(-.32,.42,-.05)},seed:{p:V(-.24,.34,1.45),l:V(-.16,.29,0)}};
+function howFrame(ph,t){
+  if(!HOW)return {p:KH.xA.p,l:KH.xA.l};HOW.dirty=true;
+  const step=HS.findIndex((h,i)=>ph>=h&&ph<HS[i+1]);
+  stEls.forEach((e,i)=>{e.classList.toggle('on',i===step);e.classList.toggle('past',step>i)});
+  const sub=(i)=>clamp((ph-HS[i])/(HS[i+1]-HS[i]));   // progress within step i
+  // 1 x-ray
+  const xr=ss(HS[0],HS[0]+.06,ph);const morph=ss(HS[2],HS[2]+.08,ph);const morph2=ss(HS[9],HS[9]+.06,ph);
+  HOW.opq.material.uniforms.op.value=1-xr;HOW.extras.forEach(e=>setOp(e,1-xr));
+  const mu=HOW.morph.material.uniforms;mu.morph.value=morph;mu.morph2.value=morph2;setOp(HOW.morph,xr*(1-ss(HS[9]+.025,HS[9]+.055,ph)));
+  dimGarden(lerp(1,.18,ss(HS[0],HS[2]+.06,ph)));
+  // 1-2 sense lines draw, then fade while the braid carries one signal down
+  const draw=ss(HS[0]+.02,HS[1]-.01,ph),lineOp=(1-ss(HS[2]+.02,HS[2]+.06,ph));
+  HOW.lines.forEach(l=>{l.geometry.setDrawRange(0,Math.floor(121*draw));setOp(l,draw>0?lineOp:0)});
+  const brOp=ss(HS[1],HS[1]+.04,ph)*(1-ss(HS[2]+.03,HS[2]+.07,ph));setOp(HOW.braid,brOp);
+  const fpos=HOW.flow.geometry.attributes.position;const tt=t*.00025;
+  for(let i=0;i<HOW.fN;i++){let q;if(i<200){const k=(i/40)|0;const u=((i%40)/40+tt)%1;q=u<=draw?HOW.curves[k].getPoint(u):MERGE}else{const s=(((i-200)/60)+tt*1.4)%1;q=MERGE.clone().lerp(SEEDC,s);if(ph<HS[1])q=MERGE}fpos.setXYZ(i,q.x,q.y,q.z)}
+  fpos.needsUpdate=true;setOp(HOW.flow,ph>HS[0]+.02?Math.max(lineOp,brOp):0);
+  // 3+ seed interior
+  const inside=ss(HS[2]+.06,HS[3],ph)*(1-morph2);setOp(HOW.veins,inside*.9);
+  const mi=step-3;   // module index 0..5 for steps 4..9
+  HOW.mods.forEach((m,i)=>{const on=mi===i,done=mi>i;setOp(m,inside*(on?1+.25*Math.sin(t*.005):(done?.35:.12)))});
+  // camera
+  let p,l;
+  if(ph<HS[2]){p=lerpV(K.gHero.p,KH.xA.p,ss(0,.05,ph));l=lerpV(K.gHero.l,KH.xA.l,ss(0,.05,ph));const k=ss(HS[1]-.03,HS[2],ph);p.lerp(KH.xB.p,k);l.lerp(KH.xB.l,k)}
+  else {const k=ss(HS[2],HS[2]+.09,ph);p=lerpV(KH.xB.p,KH.seed.p,k);l=lerpV(KH.xB.l,KH.seed.l,k)}
+  // overlays: sense tags, leader lines, module panels, face
+  let lines='';
+  const tagOn=ph>HS[0]+.03&&ph<HS[2]+.02;
+  stagEls.forEach((e,k)=>{const [x,y]=projectEl(SENSEO[k],HOW.plant);e.classList.toggle('on',tagOn&&draw>.2);if(tagOn){const dx=x>innerWidth*.62?14:-14-e.offsetWidth;e.style.left=(x+dx)+'px';e.style.top=(y-8)+'px'}});
+  modEls.forEach((e,i)=>e.classList.toggle('on',mi===i&&inside>.5));
+  if(mi>=0&&mi<6&&inside>.5){const e=modEls[mi];const [x,y]=projectEl(MODPOS[mi],HOW.plant);const r=e.getBoundingClientRect();if(r.width)lines+=`<line x1="${x}" y1="${y}" x2="${r.left}" y2="${r.top+22}"/><circle cx="${x}" cy="${y}" r="3"/><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="rgba(255,255,255,.45)"/>`}
+  svg.innerHTML=lines;
+  // face: the seed's points gather into the face line, then the crisp line draws in and talks
+  const fOn=ss(HS[9]+.035,HS[9]+.06,ph);
+  if(fOn>0){const [cx,cy]=projectEl(SEEDC,HOW.plant),[ex]=projectEl(SEEDC.clone().add(V(FSC,0,0)),HOW.plant);const u=Math.abs(ex-cx);
+    faceEl.style.width=(2.1*u)+'px';faceEl.style.height=(1.4*u)+'px';faceEl.style.left=(cx-1.05*u)+'px';faceEl.style.top=(cy-.35*u)+'px';
+    faceEl.style.opacity=1;const dr=1-ss(HS[9]+.035,HS[9]+.075,ph);faceEl.querySelectorAll('path').forEach(q=>q.style.strokeDashoffset=dr)}
+  else faceEl.style.opacity=0;
+  return {p,l};
+}
+
 const secs=[...document.querySelectorAll('main section')];
 const rail=document.getElementById('rail');
 secs.forEach((s,i)=>{if(s.dataset.s==='src')return;const a=document.createElement('a');a.href='#';a.className='mono';a.innerHTML=`<span>${s.dataset.t}</span><i></i>`;
@@ -532,6 +792,7 @@ function frame(t){
   document.getElementById('chap').textContent=secs[P._i].dataset.t;document.getElementById('num').textContent=String(P._i).padStart(2,'0');
   // text blocks
   blks.forEach(b=>{const p=P[b.dataset.s];const on=p>=+b.dataset.a&&p<=+b.dataset.b&&b.dataset.s===A;b.classList.toggle('on',on)});
+  if(A!=='how'&&HOW&&HOW.dirty){howReset();HOW.dirty=false}
   const brainWorld=['hero','mind','input','two','become'].includes(A);
   let fade=0;
   let target,look;
@@ -575,15 +836,10 @@ function frame(t){
     rp.scene=gardenScene;bloom.strength=.85;bloom.threshold=.08;
     const pr=P.reveal,ph=P.how,pd=P.bond,pf=P.future;
     if(A==='reveal'){target=lerpV(K.gHigh.p,K.gHero.p,ss(0,.55,pr));look=lerpV(K.gHigh.l,K.gHero.l,ss(0,.55,pr));fade=1-ss(0,.22,pr)}
-    else if(A==='how'){target=lerpV(K.gHero.p,K.how.p,ss(0,.25,ph));look=lerpV(K.gHero.l,K.how.l,ss(0,.25,ph))}
-    else if(A==='bond'){target=lerpV(K.how.p,K.bond.p,ss(0,.4,pd));look=lerpV(K.how.l,K.bond.l,ss(0,.4,pd))}
+    else if(A==='how'){const hr=howFrame(ph,t);target=hr.p;look=hr.l}
+    else if(A==='bond'){target=lerpV(KH.seed.p,K.bond.p,ss(0,.4,pd));look=lerpV(KH.seed.l,K.bond.l,ss(0,.4,pd))}
     else {target=lerpV(K.bond.p,K.future.p,ss(0,.6,pf));look=lerpV(K.bond.l,K.future.l,ss(0,.6,pf));fade=A==='src'?.75:0}
     if(PLANT){PLANT.rotation.y=.03+Math.sin(t*.0004)*.03;PLANT.rotation.z=Math.sin(t*.0007)*.008}
-    // pipeline progress
-    if(A==='how'){const k=ss(.06,.88,ph)*6;rows.forEach((r,i)=>r.classList.toggle('on',k>i+.05));
-      const first=rows[0],last=rows[rows.length-1];const y0=first.offsetTop+14,y1=last.offsetTop+14;document.getElementById('pdot').style.top=(lerp(y0,y1,clamp(k/6))-4)+'px';
-      if(ph>.55&&!counted){counted=true;document.querySelectorAll('.readout .bar').forEach(b=>b.style.width=b.dataset.w+'%');
-        document.querySelectorAll('.cnt').forEach(el=>{const v=+el.dataset.v,u=el.dataset.u||'',dec=v%1?1:0,t0=performance.now();const tick=n=>{const q=clamp((n-t0)/1400);const e=1-Math.pow(1-q,3);el.textContent=(v*e).toFixed(dec)+u;if(q<1)requestAnimationFrame(tick)};requestAnimationFrame(tick)})}}
   }
   if(!target){target=K.hero.p;look=K.hero.l}
   // parallax
