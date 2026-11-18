@@ -1150,7 +1150,11 @@ function futFrame(pf,t){
   if(PLANT){const k=ss(.58,.84,pf);const top=V(0,GR_R,0).lerp(sph(0,0),m).add(GCEN);const s=1.45*(1-.9*k);PLANT.scale.setScalar(Math.max(.001,s));
     PLANT.position.set(top.x,top.y+(-GCEN.y-GR_R),top.z);PLANT.position.y=top.y-(GCEN.y+GR_R)+0;PLANT.visible=k<.995;
     const fo=1-ss(.66,.86,pf);PLANT.traverse(o=>{const mm=o.material;if(!mm)return;if(mm.uniforms&&mm.uniforms.op)mm.uniforms.op.value=fo;else if(mm.isLineBasicMaterial){mm.opacity=fo;mm.transparent=true}})}
-  FUT.pivot.rotation.y=m*(t*.00006)%6.283+m*.4;
+  // spin: the angle builds up frame by frame; the speed eases in with the globe (m*m: almost still while the
+  // grass bends, the same slow ~1 turn per 105 s once it has formed). Never jumps, never faster the longer the page is open.
+  const sdt=FUT.lt==null?16:Math.min(100,Math.max(0,t-FUT.lt));FUT.lt=t;
+  FUT.spin=((FUT.spin||0)+sdt*.00006*m*m)%6.283;
+  FUT.pivot.rotation.y=FUT.spin+m*.4;
   // place every tree and person on the land as it bends into a sphere
   const pos=FUT.fx.geometry.attributes.position;let fi=0;
   FUT.items.forEach(it=>{const s=ss(it.th,it.th+(it.kind==='tree'?.22:.08),pf);it.o.visible=s>.01;
