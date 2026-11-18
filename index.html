@@ -185,6 +185,18 @@ svg#lines circle{fill:#fff}
 .wl{fill:rgba(238,242,239,.4);font:400 8px 'JetBrains Mono';letter-spacing:.14em;text-transform:uppercase}
 .wl.wn{fill:#b6f08a}
 
+/* the chick under "Oh, that chick is so cute." */
+.chickwrap{position:relative;width:340px;height:74px;margin-top:6px}
+.chickwrap .ground{position:absolute;left:0;right:30px;bottom:6px;height:1px;background:linear-gradient(90deg,transparent,rgba(238,242,239,.35) 20%,rgba(238,242,239,.35) 80%,transparent)}
+.chick{position:absolute;left:150px;bottom:6px;overflow:visible;filter:drop-shadow(0 0 10px rgba(255,216,74,.35));opacity:0;transform:translateX(-170px);transition:opacity .4s,transform 0s .4s}
+.on .chick{opacity:1;transform:translateX(0);transition:opacity .6s .9s,transform 3.2s cubic-bezier(.35,.55,.45,1) .9s}
+.chick .cbody{transform-origin:40px 50px;animation:waddle .42s ease-in-out infinite alternate}
+.chick .leg{transform-box:fill-box;transform-origin:top center}
+.chick .l1{animation:step .42s ease-in-out infinite alternate}
+.chick .l2{animation:step .42s ease-in-out infinite alternate-reverse}
+@keyframes waddle{from{transform:rotate(-5deg) translateY(0)}to{transform:rotate(5deg) translateY(-2px)}}
+@keyframes step{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+
 @media (max-width:760px){.steps{width:auto;right:16px;top:auto;bottom:16px}.st:not(.on){display:none}.modp{display:none}}
 
 @media (max-width:760px){
@@ -228,7 +240,22 @@ body.snap *{transition:none!important}
   <div class="lab mono" data-step="3"><div class="k">03 · Remember <span class="bp">— Hippocampus</span></div><div class="v">What is left meets your past.</div></div>
   <div class="lab mono" data-step="4"><div class="k">04 · Decide <span class="bp">— Prefrontal cortex</span></div><div class="v">It weighs everything and decides.</div></div>
   <div class="lab mono" data-step="5"><div class="k">05 · Express <span class="bp">— Broca’s area</span></div><div class="v">It turns the feeling into words.</div></div>
-  <div class="blk" data-s="mind" data-a=".9" data-b="1.01" style="left:12vw;top:60vh"><p class="quote">“I’m cold.”</p></div>
+  <div class="blk" data-s="mind" data-a=".9" data-b="1.01" style="left:12vw;top:60vh"><p class="quote">“Oh, that chick is so cute.”</p>
+    <div class="chickwrap" aria-hidden="true"><svg class="chick" viewBox="0 0 80 64" width="80" height="64">
+      <g class="cbody">
+        <ellipse cx="38" cy="38" rx="17" ry="14" fill="#ffd84a"/>
+        <circle cx="52" cy="24" r="10" fill="#ffe066"/>
+        <path d="M30 36 q8 -8 14 2 q-7 6 -14 -2z" fill="#f5c330"/>
+        <circle cx="55" cy="22" r="1.8" fill="#1a1408"/><circle cx="55.6" cy="21.4" r=".6" fill="#fff"/>
+        <path d="M61 24 l7 2 l-7 2.5z" fill="#ff9a2e"/>
+        <path d="M49 13 q2 -5 5 -1 q1 -4 4 0" fill="none" stroke="#ffd84a" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="57" cy="28" r="2" fill="#ffb07a" opacity=".55"/>
+      </g>
+      <g stroke="#ff9a2e" stroke-width="2.2" stroke-linecap="round" fill="none">
+        <path class="leg l1" d="M34 50 l-2 9 m0 0 l-3 1 m3 -1 l3 1"/>
+        <path class="leg l2" d="M42 50 l2 9 m0 0 l-3 1 m3 -1 l3 1"/>
+      </g>
+    </svg><div class="ground"></div></div></div>
 
   <!-- 2 INPUT -->
   <div class="blk center rd" data-s="input" data-a=".05" data-b="1.01" style="top:12vh"><p class="h split">What we take in <em>shapes</em> us.</p><p class="sub">Today, more and more of it arrives through a screen.</p></div>
