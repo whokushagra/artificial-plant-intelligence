@@ -28,6 +28,7 @@ main section{position:relative}
 /* text blocks */
 .blk{position:absolute;opacity:0;transition:opacity .9s ease,transform 1.1s cubic-bezier(.2,.7,.1,1),filter .9s;transform:translateY(18px);filter:blur(6px)}
 .blk.on{opacity:1;transform:none;filter:none}
+.fw .h{font-size:clamp(30px,3.6vw,56px)}
 #chickq{white-space:nowrap}
 .blk.dimmed{opacity:.32}
 .h{font:300 clamp(30px,4.2vw,64px)/1.04 'Inter';letter-spacing:-.035em;margin:0}
@@ -74,7 +75,7 @@ svg#lines circle{fill:#fff}
 .quote{font:italic 400 clamp(22px,2.3vw,34px)/1.2 'Instrument Serif';margin:0 0 4px}
 .vision.v4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .vision{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px;text-align:left}
-.vision div{border-top:1px solid var(--faint);padding-top:12px}
+.vision div{padding-top:4px}
 .vision .t{font:400 16px Inter}.vision .d{font:300 13.5px/1.5 Inter;color:var(--dim);margin-top:4px}
 .therm{position:absolute;text-align:center;width:min(360px,40vw)}
 .therm .chip{max-width:none;text-align:left}
@@ -360,7 +361,7 @@ body.snap *{transition:none!important}
   <div class="blk rd" data-s="bond" data-a=".5" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(420px,36vw)"><p class="sub" style="margin:0;color:var(--ink);opacity:.85;font-size:clamp(15px,1.2vw,18px)">It gets to know you. Like a curious newcomer in your home, it notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
 
   <!-- 8 FUTURE -->
-  <div class="blk center rd" data-s="future" data-a=".06" data-b="1.01" style="top:11vh;width:min(1080px,92vw)"><div class="mono tagline">Vision</div><p class="h split">What if the world around you could <em>answer?</em></p>
+  <div class="blk center rd" data-s="future" data-a=".03" data-b=".3" style="top:11vh;width:min(1080px,92vw)"><div class="mono tagline">Vision</div><p class="h split">What if the world around you could <em>answer?</em></p>
     <p class="sub" style="max-width:640px">We live through the small screens in our hands. We imagine a world where the living things around us become the interface.</p>
     <div class="vision v4">
       <div><div class="t">Grow, don’t just buy</div><div class="d">Why buy an apple shipped across the world, when the next generation could grow the tree and learn from it?</div></div>
@@ -368,7 +369,11 @@ body.snap *{transition:none!important}
       <div><div class="t">Nature that helps</div><div class="d">Living spaces that sense the air, keep watch, and even power what we need.</div></div>
       <div><div class="t">A new perspective</div><div class="d">Less consuming, more connecting: a generation that sees nature as alive.</div></div>
     </div></div>
-  <div class="blk center" data-s="future" data-a=".45" data-b="1.01" style="top:auto;bottom:9vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
+  <div class="blk rd fw" data-s="future" data-a=".34" data-b=".6" style="left:clamp(16px,8vw,140px);top:22vh"><p class="h">Less <em>consumption.</em></p></div>
+  <div class="blk rd fw" data-s="future" data-a=".41" data-b=".6" style="left:clamp(16px,8vw,140px);top:34vh"><p class="h">Beyond <em>consumerism.</em></p></div>
+  <div class="blk rd fw" data-s="future" data-a=".48" data-b=".6" style="left:clamp(16px,8vw,140px);top:46vh"><p class="h">Past <em>capitalism</em> as usual.</p></div>
+  <div class="blk center rd" data-s="future" data-a=".8" data-b="1.01" style="top:9vh;width:min(980px,92vw)"><p class="h split">A better place to live, for <em>all of us.</em></p></div>
+  <div class="blk center" data-s="future" data-a=".88" data-b="1.01" style="top:auto;bottom:8vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
 </div>
 
 <main id="track">
@@ -380,7 +385,7 @@ body.snap *{transition:none!important}
   <section data-s="reveal" data-t="Introducing" style="height:260vh"></section>
   <section data-s="how" data-t="How it thinks" style="height:1100vh"></section>
   <section data-s="bond" data-t="Relationship" style="height:260vh"></section>
-  <section data-s="future" data-t="Future" style="height:240vh"></section>
+  <section data-s="future" data-t="Future" style="height:780vh"></section>
   <section data-s="src" data-t="Sources" style="height:130vh">
     <div id="src"><div class="mono" style="opacity:.6">Research behind this page</div>
       <ol>
@@ -759,7 +764,7 @@ function buildGarden(){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(S,3));g.setAttribute('col',new THREE.Float32BufferAttribute(SC,3));g.setAttribute('size',new THREE.Float32BufferAttribute(SS,1));
   g.setAttribute('tid',new THREE.Float32BufferAttribute(TI,1));g.setAttribute('hinge',new THREE.Float32BufferAttribute(HG,3));g.setAttribute('tax',new THREE.Float32BufferAttribute(TX,3));g.setAttribute('tang',new THREE.Float32BufferAttribute(TA,1));
   const plant=new THREE.Group();plant.add(new THREE.Points(g,trapMat()),Dew.build(0,60),Moss.build(0,60));
-  plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;buildHow(plant,S,[plant.children[1],plant.children[2]]);
+  plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;buildHow(plant,S,[plant.children[1],plant.children[2]]);buildFuture();
   }
   gs.add(G.build(0,17),Lg.build(),T.build(0,30),Lt.build());
   rs(91);gs.add(dust(1500,[10,5,10,2],['#e6ffe0','#bff4ff'],.8,.3).build(0,22));
@@ -842,7 +847,7 @@ function buildHow(plant,S,extras){
   howReset();
 }
 const stEls=[...document.querySelectorAll('.st')],stagEls=[...document.querySelectorAll('.stag')],modEls=[...document.querySelectorAll('.modp')];
-function dimGarden(f){gardenScene.children.forEach(o=>{if(o===PLANT)return;o.traverse(q=>{const m=q.material;if(!m)return;if(m.uniforms&&m.uniforms.tint)m.uniforms.tint.value.setScalar(f);else if(m.isLineBasicMaterial)m.color.setScalar(f)})})}
+function dimGarden(f){gardenScene.children.forEach(o=>{if(o===PLANT||o===FUTROOT)return;o.traverse(q=>{const m=q.material;if(!m)return;if(m.uniforms&&m.uniforms.tint)m.uniforms.tint.value.setScalar(f);else if(m.isLineBasicMaterial)m.color.setScalar(f)})})}
 function howReset(){if(!HOW)return;HOW.opq.material.uniforms.op.value=1;HOW.extras.forEach(e=>setOp(e,1));setOp(HOW.morph,0);HOW.lines.forEach(l=>setOp(l,0));setOp(HOW.braid,0);setOp(HOW.flow,0);setOp(HOW.veins,0);HOW.mods.forEach(m=>setOp(m,0));dimGarden(1);
   stagEls.forEach(e=>e.classList.remove('on'));modEls.forEach(e=>e.classList.remove('on'));TALK.reset()}
 // step ranges along the section (0..1)
@@ -1066,6 +1071,100 @@ function chickFrame(A,P,t){
   CHICK.body.position.y=Math.abs(Math.sin(ph))*.008;CHICK.body.rotation.z=Math.sin(ph)*.05;CHICK.body.rotation.x=Math.sin(ph*2)*.04;
   const [sx,sy]=projectEl(V(0,.26,0),CHICK.root);chickQ.style.left=(sx-chickQ.offsetWidth/2)+'px';chickQ.style.top=(sy-chickQ.offsetHeight)+'px';
 }
+// ======================= FUTURE: people and trees grow around the plant, the land spreads, it becomes the Earth =======================
+var FUTROOT=null;let FUT=null;
+const GR_R=2.4,DISK=4.2;                      // globe radius, flat-disk radius that wraps onto it
+const GCEN=V(0,-GR_R,0);
+function sph(x,z){const r=Math.hypot(x,z),a=Math.atan2(z,x),th=Math.min(Math.PI*.98,r/DISK*Math.PI);return V(GR_R*Math.sin(th)*Math.cos(a),GR_R*Math.cos(th),GR_R*Math.sin(th)*Math.sin(a))}   // pivot-local
+const futMat=()=>new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  uniforms:{m:{value:0},op:{value:0},grow:{value:0},uScale:U.uScale},
+  vertexShader:`attribute vec3 sp;attribute vec3 col;attribute vec3 col2;attribute float size;attribute float alpha;attribute float rr;uniform float m,op,grow,uScale;varying vec3 vC;varying float vA;
+  void main(){vec3 p=mix(position,sp,m);vC=mix(col,col2,smoothstep(.3,.9,m));float show=1.-smoothstep(grow-.08,grow,rr);vA=alpha*op*max(show,step(.6,m));
+    vA*=1.+m*.8;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(1.+m*3.2)*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vC;varying float vA;void main(){vec2 q=gl_PointCoord-.5;float r=length(q);if(r>.5)discard;float a=pow(1.-r*2.,1.6)*vA;gl_FragColor=vec4(vC*a,a);}`});
+const WARM=C('#ffe2b8'),SKIN=C('#ffd2a8');
+function personCloud(pose,seed){rs(seed);const c=new Cloud();const col=R()<.5?WARM:C('#cfe9ff');
+  const seg=(a,b,n,s=2.2,al=.75)=>{for(let i=0;i<n;i++){const t=R();c.add(a.x+(b.x-a.x)*t+(R()-.5)*.004,a.y+(b.y-a.y)*t+(R()-.5)*.004,a.z+(b.z-a.z)*t+(R()-.5)*.004,col,s,al)}};
+  const ball=(o,r,n,cc=col)=>{for(let i=0;i<n;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(r*Math.cbrt(R()));c.add(o.x+d.x,o.y+d.y,o.z+d.z,cc,2.2,.8)}};
+  let hip=V(0,.08,0),neck=V(0,.145,0),head=V(0,.168,0);
+  if(pose===1){hip=V(0,.045,0);neck=V(.02,.1,0);head=V(.03,.122,0)}         // crouching to plant
+  if(pose===2){hip=V(0,.03,0);neck=V(-.01,.095,0);head=V(-.01,.118,0)}      // sitting under the tree
+  ball(head,.017,90,SKIN.clone().lerp(col,.5));seg(hip,neck,90,1.8,.6);
+  // legs
+  if(pose===2){seg(hip,V(.06,.012,.015),40);seg(V(.06,.012,.015),V(.08,0,.015),20);seg(hip,V(.06,.012,-.015),40);seg(V(.06,.012,-.015),V(.08,0,-.015),20)}
+  else if(pose===1){seg(hip,V(.03,.03,.015),30);seg(V(.03,.03,.015),V(.02,0,.015),30);seg(hip,V(-.02,.03,-.015),30);seg(V(-.02,.03,-.015),V(-.01,0,-.015),30)}
+  else{seg(hip,V(.012,0,.012),55);seg(hip,V(-.012,0,-.012),55)}
+  // arms (+x faces the tree)
+  const sh=neck.clone().add(V(0,-.008,0));
+  if(pose===0){seg(sh,V(.05,.15,.01),40);seg(sh,V(.01,.09,-.02),35)}                      // talking, hand raised
+  else if(pose===1){seg(sh,V(.06,.03,.01),40);seg(sh,V(.055,.025,-.015),40)}              // hands in the soil
+  else if(pose===2){seg(sh,V(.03,.07,.02),30);seg(sh,V(.03,.07,-.02),30)}
+  else if(pose===3){seg(sh,V(.035,.1,.012),35);seg(V(.035,.1,.012),V(.04,.125,0),15);for(let i=0;i<30;i++)c.add(.042+(R()-.5)*.006,.125+(R()-.5)*.012,(R()-.5)*.003,C('#9fe8ff'),1.6,.9)}   // phone
+  else {seg(sh,V(.045,.2,.0),50);seg(sh,V(.01,.09,-.02),35)}                               // reaching for fruit
+  return c.build(0,60)}
+function treeCloud(seed,fruit){rs(seed);const c=new Cloud(),L=new Lines();
+  const H=.55+R()*.35;for(let i=0;i<500;i++){const t=R(),a=R()*6.28,r=.018*(1-t*.6);c.add(Math.cos(a)*r,t*H*.62,Math.sin(a)*r,C('#7a5a3a'),1.8,.5)}
+  for(let k=0;k<9;k++){let p=V(0,H*(.35+R()*.3),0),d=V(R()-.5,.8,R()-.5).normalize();const pts=[p.clone()];for(let i=0;i<14;i++){d.add(V((R()-.5)*.5,.05,(R()-.5)*.5)).normalize();p=p.clone().addScaledVector(d,.025);pts.push(p)}L.poly(pts,C('#8a6a48'),.35,false)}
+  const CC=V(0,H*.8,0),cr=.2+R()*.08;for(let i=0;i<2600;i++){const d=V(R()-.5,(R()-.5)*.85,R()-.5).normalize().multiplyScalar(cr*Math.pow(R(),.25));const g=C('#3fb85a').lerp(C('#b8ff7a'),R()*.6);c.add(CC.x+d.x,CC.y+d.y,CC.z+d.z,g,2.4+R()*1.4,.45+R()*.35)}
+  if(fruit)for(let k=0;k<14;k++){const d=V(R()-.5,(R()-.5)*.8,R()-.5).normalize().multiplyScalar(cr*.95);for(let i=0;i<12;i++)c.add(CC.x+d.x+(R()-.5)*.01,CC.y+d.y+(R()-.5)*.01,CC.z+d.z+(R()-.5)*.01,C('#ff5a4a'),1.8,.85)}
+  const g=new THREE.Group();g.add(c.build(0,60),L.build());return {g,top:CC,H}}
+function buildFuture(){
+  const pivot=new THREE.Group();pivot.position.copy(GCEN);gardenScene.add(pivot);FUTROOT=pivot;
+  const items=[];rs(1500);
+  // trees around the plant, each with people living with it
+  const NT=16;for(let k=0;k<NT;k++){const ring=k<7?0:1;const a=k/(ring?9:7)*6.283+(ring?.35:0)+(R()-.5)*.3;const r=ring?2.0+R()*.6:.9+R()*.35;
+    const x=Math.cos(a)*r,z=Math.sin(a)*r-.2;const fruit=k%3===0;const T=treeCloud(1600+k,fruit);T.g.userData.th=.06+k/NT*.5;pivot.add(T.g);items.push({o:T.g,x,z,kind:'tree',th:.06+k/NT*.5,top:T.top,H:T.H});
+    const np=1+((R()*2.2)|0);for(let j=0;j<np;j++){const pa=a+(j-.5)*.9+(R()-.5)*.3;const pr=r+.18+R()*.1;const px=Math.cos(pa)*pr,pz=Math.sin(pa)*pr-.2;
+      const pose=fruit&&j===0?4:[0,1,2,3][(k+j*2)%4];const P=personCloud(pose,1700+k*7+j);const grp=new THREE.Group();grp.add(P);pivot.add(grp);
+      items.push({o:grp,x:px,z:pz,kind:'person',pose,th:.04+k/NT*.5+j*.03,face:V(x-px,0,z-pz).normalize(),tree:items[items.length-1-j]})}}
+  // the land: one big disk of moss that spreads outward, then wraps into the Earth
+  const N=110000,P=[],SP=[],C1=[],C2=[],SZ=[],AL=[],RR=[];rs(1501);
+  for(let i=0;i<N;i++){const r=Math.sqrt(R())*DISK,a=R()*6.283;const x=Math.cos(a)*r,z=Math.sin(a)*r;P.push(x,GR_R,z);const s=sph(x,z);SP.push(s.x,s.y,s.z);
+    const g=C('#2f5a24').lerp(C('#9fd86a'),R()*.6);C1.push(g.r,g.g,g.b);
+    const n=fbm(s.x*.9+3,s.y*.9,s.z*.9);const land=n>.5;const c2=land?C('#4fbf6a').lerp(C('#c8ff8a'),R()*.5):C('#1f6fd0').lerp(C('#5fd0ff'),R()*.4);C2.push(c2.r,c2.g,c2.b);
+    SZ.push(1.5+R()*1.4);AL.push(.35+R()*.35);RR.push(r/DISK)}
+  const g=new THREE.BufferGeometry();const A=(n,a,k)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,k));A('position',P,3);A('sp',SP,3);A('col',C1,3);A('col2',C2,3);A('size',SZ,1);A('alpha',AL,1);A('rr',RR,1);
+  const land=new THREE.Points(g,futMat());land.frustumCulled=false;pivot.add(land);
+  // atmosphere halo for the globe
+  const halo=new Cloud();rs(1502);for(let i=0;i<5000;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(GR_R*(1.02+R()*.08));halo.add(d.x,d.y,d.z,C('#7fd8ff'),4,.1)}
+  const hl=halo.build(0,80);pivot.add(hl);
+  // little live effects: talking sparks, charging pulses, story glow
+  const fxN=items.filter(i=>i.kind==='person').length*6;const fp=new Float32Array(fxN*3),fc=[],fs=[],fa=[];for(let i=0;i<fxN;i++){fc.push(.8,1,.9);fs.push(2.2);fa.push(.8)}
+  const fg=new THREE.BufferGeometry();fg.setAttribute('position',new THREE.BufferAttribute(fp,3));fg.setAttribute('col',new THREE.Float32BufferAttribute(fc,3));fg.setAttribute('size',new THREE.Float32BufferAttribute(fs,1));fg.setAttribute('alpha',new THREE.Float32BufferAttribute(fa,1));
+  const fx=new THREE.Points(fg,ptsMat(0,60));fx.frustumCulled=false;pivot.add(fx);
+  FUT={pivot,items,land,halo:hl,fx,dirty:false};pivot.visible=false;
+}
+const _up=V(0,1,0),_q=new THREE.Quaternion(),_q2=new THREE.Quaternion();
+function futFrame(pf,t){
+  if(!FUT)return {p:K.future.p,l:K.future.l};FUT.dirty=true;FUT.pivot.visible=true;
+  const m=ss(.62,.86,pf);const grow=ss(.05,.62,pf);const spread=ss(.4,.66,pf);
+  const lu=FUT.land.material.uniforms;lu.m.value=m;lu.op.value=ss(.02,.12,pf);lu.grow.value=lerp(.3,1.05,spread);
+  setOp(FUT.halo,ss(.75,.9,pf));
+  dimGarden(1-ss(.5,.68,pf));if(PLANT)PLANT.visible=m<.25;
+  FUT.pivot.rotation.y=m*(t*.00006)%6.283+m*.4;
+  // place every tree and person on the land as it bends into a sphere
+  const pos=FUT.fx.geometry.attributes.position;let fi=0;
+  FUT.items.forEach(it=>{const s=ss(it.th,it.th+(it.kind==='tree'?.22:.08),pf);it.o.visible=s>.01;
+    const flat=V(it.x,GR_R,it.z),sp=sph(it.x,it.z);const p=flat.clone().lerp(sp,m);it.o.position.copy(p);
+    const n=V(0,1,0).lerp(sp.clone().normalize(),m).normalize();_q.setFromUnitVectors(_up,n);
+    if(it.kind==='person'){const yaw=Math.atan2(-it.face.z,it.face.x);_q2.setFromAxisAngle(_up,yaw);it.o.quaternion.copy(_q).multiply(_q2);it.o.scale.setScalar(Math.max(.001,s)*1.5*(1-.65*m));
+      if(it.o.visible){const base=p.clone();const tr=it.tree;const tp=tr?V(tr.x,GR_R,tr.z).lerp(sph(tr.x,tr.z),m):base;const ph=(t*.0006+fi*.13)%1;
+        for(let k=0;k<6;k++){let q;const u=(ph+k/6)%1;
+          if(it.pose===3){q=base.clone().lerp(tp,u).add(n.clone().multiplyScalar(.1+.04*Math.sin(u*Math.PI)))}          // charging pulse along a line
+          else if(it.pose===0){q=base.clone().lerp(tp,u).add(n.clone().multiplyScalar(.16+.1*Math.sin(u*Math.PI)))}      // words travelling to the tree
+          else{q=base.clone().add(n.clone().multiplyScalar(.05+u*.25)).add(V(Math.sin(u*9+k)*.02,0,Math.cos(u*9+k)*.02))} // story glow rising
+          const vis=s>.9&&m<.5;pos.setXYZ(fi*6+k,vis?q.x:0,vis?q.y:-99,vis?q.z:0)}}
+      else for(let k=0;k<6;k++)pos.setXYZ(fi*6+k,0,-99,0);fi++}
+    else{it.o.quaternion.copy(_q);it.o.scale.setScalar(Math.max(.001,.12+.88*s)*(1-.72*m))}});
+  pos.needsUpdate=true;
+  // camera: settle into the garden, drift back as it fills, then pull out to see the Earth
+  const F1={p:V(0,1.35,3.7),l:V(0,.28,-.3)},F2={p:V(.7,2.1,5.6),l:V(0,.25,-.4)},F3={p:V(0,.6,13.2),l:V(0,-2.6,0)};
+  const p=lerpV(K.bond.p,F1.p,ss(0,.1,pf)).lerp(F2.p,ss(.12,.6,pf)).lerp(F3.p,ss(.6,.9,pf));
+  const l=lerpV(K.bond.l,F1.l,ss(0,.1,pf)).lerp(F2.l,ss(.12,.6,pf)).lerp(F3.l,ss(.6,.9,pf));
+  return {p,l};
+}
+function futReset(){if(!FUT)return;FUT.pivot.visible=false;dimGarden(1);if(PLANT)PLANT.visible=true;FUT.dirty=false}
+
 // camera keyframes
 const K={
   hero:{p:V(0,.1,7.5),l:V(0,0,0)},
@@ -1092,6 +1191,7 @@ function frame(t){
   // text blocks
   blks.forEach(b=>{const p=P[b.dataset.s];const on=p>=+b.dataset.a&&p<=+b.dataset.b&&b.dataset.s===A;b.classList.toggle('on',on)});
   if(A!=='how'&&HOW&&HOW.dirty){howReset();HOW.dirty=false}
+  if(A!=='future'&&A!=='src'&&FUT&&FUT.dirty)futReset();
   ACTIVE=A;
   const brainWorld=['hero','mind','input','two','become'].includes(A);
   let fade=0;
@@ -1145,7 +1245,7 @@ function frame(t){
     if(A==='reveal'){target=lerpV(K.gHigh.p,K.gHero.p,ss(0,.55,pr));look=lerpV(K.gHigh.l,K.gHero.l,ss(0,.55,pr));fade=1-ss(-.1,.08,pr)}
     else if(A==='how'){const hr=howFrame(ph,t);target=hr.p;look=hr.l}
     else if(A==='bond'){target=lerpV(KH.seed.p,K.bond.p,ss(0,.4,pd));look=lerpV(KH.seed.l,K.bond.l,ss(0,.4,pd))}
-    else {target=lerpV(K.bond.p,K.future.p,ss(0,.6,pf));look=lerpV(K.bond.l,K.future.l,ss(0,.6,pf));fade=A==='src'?.75:0}
+    else {const fr=futFrame(A==='src'?1:clamp(pf),t);target=fr.p;look=fr.l;fade=A==='src'?.75:0}
     if(PLANT){PLANT.rotation.y=.03+Math.sin(t*.0004)*.03;PLANT.rotation.z=Math.sin(t*.0007)*.008}
     {const hv=trapFrame(['reveal','bond','future'].includes(A),performance.now());document.body.style.cursor=hv>=0?'pointer':''}
   }
