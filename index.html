@@ -357,8 +357,7 @@ body.snap *{transition:none!important}
   </div>
 
   <!-- 7 RELATIONSHIP -->
-  <div class="blk rd" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:18vh;max-width:min(640px,48vw)"><p class="h split">This is the first step: a way for people to <em>understand</em> the language of plants, and to talk with them.</p></div>
-  <div class="blk" data-s="bond" data-a=".3" data-b="1.01" style="left:clamp(16px,7vw,110px);top:62vh"><p class="quote">“I would love to hear about your world.”</p><p class="quote" style="opacity:.6">“Why do humans have so many things to tell?”</p><div class="mono" style="opacity:.5;margin-top:10px">Real words, spoken by the plant</div></div>
+  <div class="blk rd" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:18vh;max-width:min(640px,48vw)"><p class="h split">This is the first step: a way for humans to <em>understand</em> the language of plants.</p></div>
   <div class="blk rd" data-s="bond" data-a=".5" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(420px,36vw)"><p class="sub" style="margin:0;color:var(--ink);opacity:.85;font-size:clamp(15px,1.2vw,18px)">It gets to know you. Like a curious newcomer in your home, it notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
 
   <!-- 8 FUTURE -->
@@ -1147,7 +1146,10 @@ function futFrame(pf,t){
   const m=ss(.62,.86,pf);const grow=ss(.05,.62,pf);const spread=ss(.4,.66,pf);
   const lu=FUT.land.material.uniforms;lu.m.value=m;lu.op.value=ss(.02,.12,pf);lu.grow.value=lerp(.3,1.05,spread);
   setOp(FUT.halo,ss(.75,.9,pf));
-  dimGarden(1-ss(.5,.68,pf));if(PLANT)PLANT.visible=m<.25;
+  dimGarden(1-ss(.5,.68,pf));
+  if(PLANT){const k=ss(.58,.84,pf);const top=V(0,GR_R,0).lerp(sph(0,0),m).add(GCEN);const s=1.45*(1-.9*k);PLANT.scale.setScalar(Math.max(.001,s));
+    PLANT.position.set(top.x,top.y+(-GCEN.y-GR_R),top.z);PLANT.position.y=top.y-(GCEN.y+GR_R)+0;PLANT.visible=k<.995;
+    const fo=1-ss(.66,.86,pf);PLANT.traverse(o=>{const mm=o.material;if(!mm)return;if(mm.uniforms&&mm.uniforms.op)mm.uniforms.op.value=fo;else if(mm.isLineBasicMaterial){mm.opacity=fo;mm.transparent=true}})}
   FUT.pivot.rotation.y=m*(t*.00006)%6.283+m*.4;
   // place every tree and person on the land as it bends into a sphere
   const pos=FUT.fx.geometry.attributes.position;let fi=0;
@@ -1170,7 +1172,7 @@ function futFrame(pf,t){
   const l=lerpV(K.bond.l,F1.l,ss(0,.1,pf)).lerp(F2.l,ss(.12,.6,pf)).lerp(F3.l,ss(.6,.9,pf));
   return {p,l};
 }
-function futReset(){if(!FUT)return;FUT.pivot.visible=false;dimGarden(1);if(PLANT)PLANT.visible=true;FUT.dirty=false}
+function futReset(){if(!FUT)return;FUT.pivot.visible=false;dimGarden(1);if(PLANT){PLANT.visible=true;PLANT.scale.setScalar(1.45);PLANT.position.set(0,0,0);PLANT.traverse(o=>{const mm=o.material;if(mm&&mm.uniforms&&mm.uniforms.op&&mm!==HOW.morph.material)mm.uniforms.op.value=1})}FUT.dirty=false}
 
 // camera keyframes
 const K={
