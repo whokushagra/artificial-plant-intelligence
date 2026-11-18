@@ -252,7 +252,7 @@ body.snap *{transition:none!important}
 
   <!-- 4 EMPATHY -->
   <div class="blk center rd" data-s="become" data-a="-.2" data-b=".88" style="top:auto;bottom:8vh;width:min(980px,90vw)"><p class="h split">Change what we take in, and we change who we <em>become.</em></p>
-    <p class="sub">Two hours a week in nature is linked to better health and wellbeing <span class="mono" style="font-size:10px;opacity:.7">[7]</span>. We believe a brain that notices living things grows more connected, and more caring.</p></div>
+    <p class="sub">Two hours a week in nature is linked to better health and wellbeing. We believe a brain that notices living things grows more connected, and more caring.</p></div>
 
   <!-- 5 REVEAL -->
   <div class="blk center" data-s="reveal" data-a=".35" data-b="1.01" style="top:9vh"><div class="mono tagline">Introducing</div><p class="big split">Artificial <em>Plant</em> Intelligence</p></div>
@@ -685,7 +685,8 @@ function buildGarden(){
   rs(15);for(let i=0;i<220;i++){T.add((R()-.5)*3,.1+R()*1.4,-1.2+R()*2,C(R()<.7?'#f6ffe8':'#bff4ff'),1.6+R()*2.6,.25+R()*.55)}
   // ---- Snappy: fleshy 3D traps, real spines, garden-matched colour ----
   {
-  const S=[],SC=[],SS=[];const add=(p,c,sz)=>{S.push(p.x,p.y,p.z);SC.push(c.r,c.g,c.b);SS.push(sz)};
+  const S=[],SC=[],SS=[],TI=[],HG=[],TX=[],TA=[];let curT=-1,curH=V(),curA=V(0,1,0),curG=0;
+  const add=(p,c,sz)=>{S.push(p.x,p.y,p.z);SC.push(c.r,c.g,c.b);SS.push(sz);TI.push(curT);HG.push(curH.x,curH.y,curH.z);TX.push(curA.x,curA.y,curA.z);TA.push(curG)};
   const Dew=new Cloud();
   const LIGHT=V(.15,1,.25).normalize();           // same overhead light as the clearing
   const CAM=V(0,.6,1.85).multiplyScalar(1/1.45);  // camera in plant space
@@ -700,7 +701,7 @@ function buildGarden(){
   const up=V(0,1,0);
   const LV=[[0.05,.55,.32,.105,.85,.7],[0.95,.75,.28,.095,.8,.5],[2.25,.5,.33,.11,.9,.75],[3.1,.7,.27,.09,.78,.55],[4.05,.55,.31,.10,.86,.7],[5.0,.85,.25,.085,.75,.45],[5.7,.62,.29,.095,.82,.65]];
   rs(31);
-  LV.forEach(([az,el,Lp_,ts,open,tilt])=>{
+  LV.forEach(([az,el,Lp_,ts,open,tilt],li)=>{
     const dir=V(Math.cos(az)*Math.cos(el),Math.sin(el),Math.sin(az)*Math.cos(el)).normalize();
     const side=V().crossVectors(dir,up).normalize();const nrm=V().crossVectors(side,dir).normalize();
     // petiole: spoon blade with a thick, rounded midrib
@@ -712,7 +713,8 @@ function buildGarden(){
     const T0=pet(1,.5);const ax=V(dir.x,dir.y*.25+.05,dir.z).normalize();
     const outw=V(dir.x,0,dir.z).normalize();const bis=up.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(outw,Math.sin(tilt)).normalize();
     const bb=V().crossVectors(ax,bis).normalize();const L=ts*1.05;const TH=ts*.2;
-    for(const sd of [-1,1]){
+    TRAPS.push({c:T0.clone().addScaledVector(ax,L*.5).addScaledVector(bis,ts*.45),r:ts*.9});
+    for(const sd of [-1,1]){curT=li;curH=T0.clone();curA=ax.clone();curG=-sd*open;
       const dS=bis.clone().multiplyScalar(Math.cos(open)).addScaledVector(bb,sd*Math.sin(open));
       const inw=bis.clone().multiplyScalar(Math.sin(open)).addScaledVector(bb,-sd*Math.cos(open));
       const sh=u=>Math.pow(Math.sin(u*Math.PI),.45);
@@ -740,6 +742,7 @@ function buildGarden(){
       for(let k=0;k<3;k++){const q=inner(.3+k*.2,.38);for(let j=0;j<40;j++){const t=R();const p=q.clone().addScaledVector(inw,ts*.12*t);add(p,C('#3a0a12'),.6)}}
       // dew beads on the lobe, catching the light
       for(let i=0;i<9;i++){const p=inner(R(),R()*.85).addScaledVector(inw,.003);Dew.add(p.x,p.y,p.z,C('#ffffff'),1.2+R()*1.6,.18+R()*.22)}}
+    curT=-1;curG=0;
     for(let i=0;i<6;i++){const p=pet(.2+R()*.7,R()).addScaledVector(nrm,.003);Dew.add(p.x,p.y,p.z,C('#ffffff'),1.1+R()*1.1,.15+R()*.18)}
   });
   // young closed traps in the crown
@@ -749,7 +752,8 @@ function buildGarden(){
   // moss creeping over the crown so the plant grows out of the ground
   rs(47);const Moss=new Cloud();for(let i=0;i<6000;i++){const a=R()*6.28;const rr=.05+.09*fbm(Math.cos(a)*3,Math.sin(a)*3,2);const r=Math.pow(R(),.7)*rr;if(R()>1-r/rr*.7)continue;Moss.add(Math.cos(a)*r,.002+R()*.025*(1-r/rr),Math.sin(a)*r,C('#4f8a30').lerp(C('#a8d070'),R()*.5),.9+R()*.8,.05+R()*.12)}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(S,3));g.setAttribute('col',new THREE.Float32BufferAttribute(SC,3));g.setAttribute('size',new THREE.Float32BufferAttribute(SS,1));
-  const plant=new THREE.Group();plant.add(new THREE.Points(g,opaqueMat()),Dew.build(0,60),Moss.build(0,60));
+  g.setAttribute('tid',new THREE.Float32BufferAttribute(TI,1));g.setAttribute('hinge',new THREE.Float32BufferAttribute(HG,3));g.setAttribute('tax',new THREE.Float32BufferAttribute(TX,3));g.setAttribute('tang',new THREE.Float32BufferAttribute(TA,1));
+  const plant=new THREE.Group();plant.add(new THREE.Points(g,trapMat()),Dew.build(0,60),Moss.build(0,60));
   plant.scale.setScalar(1.45);plant.rotation.y=.03;gs.add(plant);PLANT=plant;buildHow(plant,S,[plant.children[1],plant.children[2]]);
   }
   gs.add(G.build(0,17),Lg.build(),T.build(0,30),Lt.build());
@@ -942,6 +946,74 @@ const TALK=(()=>{
   };
 })();
 
+// ======================= INTERACTION: traps that snap shut, a brain that grows a garden =======================
+let mxp=-9999,myp=-9999;addEventListener('pointermove',e=>{mxp=e.clientX;myp=e.clientY},{passive:true});
+addEventListener('pointerleave',()=>{mxp=myp=-9999});
+// ---- flytrap traps ----
+const TRAPS=[];   // {c:Vector3 (plant-local), r:number}
+const TRAPST=[0,0,0,0,0,0,0].map(()=>({cur:0,hold:new URLSearchParams(location.search).has('closeall')?Infinity:0}));
+const trapMat=()=>new THREE.ShaderMaterial({transparent:true,uniforms:{uScale:U.uScale,op:{value:1},cl:{value:[0,0,0,0,0,0,0]}},
+  vertexShader:`attribute float size;attribute vec3 col;attribute float tid;attribute vec3 hinge;attribute vec3 tax;attribute float tang;uniform float cl[7];varying vec3 vC;uniform float uScale;
+  void main(){vC=col;vec3 p=position;
+    if(tid>-.5){int i=int(tid+.5);float a=tang*cl[i];vec3 v=p-hinge;float c=cos(a),s=sin(a);p=hinge+v*c+cross(tax,v)*s+tax*dot(tax,v)*(1.-c);}
+    vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(4.2*uScale/-mv.z);gl_Position=projectionMatrix*mv;}`,
+  fragmentShader:`varying vec3 vC;uniform float op;void main(){vec2 p=gl_PointCoord-.5;if(length(p)>.5||op<.01)discard;gl_FragColor=vec4(vC,op);}`});
+function trapAt(x,y){if(!PLANT)return -1;let best=-1,bd=1e9;TRAPS.forEach((tr,i)=>{const [sx,sy]=projectEl(tr.c,PLANT),[ex,ey]=projectEl(tr.c.clone().add(V(tr.r,0,0)),PLANT);const rr=Math.max(40,Math.hypot(ex-sx,ey-sy)*1.25);const d=Math.hypot(x-sx,y-sy);if(d<rr&&d<bd){bd=d;best=i}});return best}
+function trapFrame(active,now){
+  if(!PLANT||!PLANT.children[0].material.uniforms.cl)return;
+  const hov=active?trapAt(mxp,myp):-1;const u=PLANT.children[0].material.uniforms.cl.value;
+  TRAPST.forEach((s,i)=>{const want=(active&&(i===hov||now<s.hold))?.9:0;s.cur+=(want-s.cur)*(want>s.cur?.32:.035);u[i]=s.cur});
+  return hov;
+}
+// ---- floral brain ----
+let GARDEN=null;const FLW=[];const NEON=['#ff4fd8','#4fb8ff','#ffa53a','#7dff9a','#c07bff','#ffe14a','#ff6a6a','#5ff0d0'];
+function flowerCloud(kind,seed,ci){rs(seed);const c=new Cloud();const col=C(NEON[ci%NEON.length]),col2=C(NEON[(ci+3)%NEON.length]);const green=C('#6fd88a');
+  const stem=(h,n)=>{for(let i=0;i<n;i++){const t=i/n;c.add(Math.sin(t*3)*.004,t*h,0,green,1.1,.35)}};
+  if(kind===0){ // blossom: 5-6 petals
+    const P=5+((R()*2)|0),rad=.035+R()*.02;stem(.03,30);
+    for(let k=0;k<P;k++){const a=k/P*6.283;for(let i=0;i<70;i++){const t=Math.sqrt(R()),w=(R()-.5)*.55*Math.sin(t*Math.PI);const ang=a+w;c.add(Math.cos(ang)*t*rad,.03+t*t*.012,Math.sin(ang)*t*rad,col.clone().lerp(C('#ffffff'),(1-t)*.25),1.6+R(),.35+.4*(1-t))}}
+    for(let i=0;i<30;i++)c.add((R()-.5)*.008,.034,(R()-.5)*.008,C('#fff3a0'),2.2,.9)}
+  else if(kind===1){ // cluster of glowing berries
+    const n=7+((R()*7)|0);for(let k=0;k<n;k++){const d=V(R()-.5,R()*.8,R()-.5).normalize().multiplyScalar(.02+R()*.025);for(let i=0;i<18;i++){const q=V(R()-.5,R()-.5,R()-.5).normalize().multiplyScalar(.006*Math.sqrt(R()));c.add(d.x+q.x,.02+d.y+q.y,d.z+q.z,col,1.8,.7)}}stem(.02,20)}
+  else if(kind===2){ // puff
+    stem(.05,30);for(let i=0;i<220;i++){const d=V(R()-.5,R()-.5,R()-.5).normalize();c.add(d.x*.03,.06+d.y*.03,d.z*.03,col.clone().lerp(C('#ffffff'),.5),1.2,.25+R()*.35)}}
+  else { // leafy sprig
+    const h=.07+R()*.05;stem(h,50);for(let k=0;k<5;k++){const y=(k+1)/6*h,sd=k%2?1:-1;for(let i=0;i<40;i++){const t=R();c.add(sd*t*.03,y+t*.012,(R()-.5)*.006*Math.sin(t*Math.PI)*4,green.clone().lerp(col2,t*.4),1.3,.35+.3*(1-t))}}
+    for(let i=0;i<24;i++)c.add((R()-.5)*.01,h+.005+(R()-.5)*.01,(R()-.5)*.01,col,2,.8)}
+  for(let i=0;i<c.s.length;i++){c.s[i]*=2.1;c.a[i]=Math.min(1,c.a[i]*1.15)}
+  return c.build(0,40)}
+function addFlower(local,kind,seed,born,ci){
+  const g=new THREE.Group();g.add(flowerCloud(kind,seed,ci));g.position.copy(local);
+  const n=local.clone().sub(V(0,.05,0)).normalize();const q=new THREE.Quaternion().setFromUnitVectors(V(0,1,0),n);g.quaternion.copy(q);
+  g.userData={q0:q.clone(),w:0,born,th:0,base:.9+R()*.6,i:FLW.length};g.scale.setScalar(0);GARDEN.add(g);FLW.push(g);return g}
+const SURF=[];
+function buildBrainGarden(){
+  GARDEN=new THREE.Group();BR.add(GARDEN);
+  const sp=SHELL.p,n=sp.length/3;rs(700);for(let i=0;i<3000;i++){const j=(R()*n)|0;SURF.push(V(sp[j*3],sp[j*3+1],sp[j*3+2]))}
+  rs(701);const N=90;for(let i=0;i<N;i++){const p=SURF[(R()*SURF.length)|0].clone();const inw=p.clone().sub(V(0,.05,0)).normalize();p.addScaledVector(inw,-.02-R()*.05);
+    const f=addFlower(p,i%4,800+i*97,null,(i*5+((i/4)|0))%8);f.userData.th=.04+(i/N)*.5}
+}
+const qtmp=new THREE.Quaternion(),etmp=new THREE.Euler();
+function gardenFrame(A,pb,t,bop){
+  if(!GARDEN)return;const on=A==='become';GARDEN.visible=on;if(!on)return;
+  const gg=ss(.05,.6,pb);BR.children.slice(0,3).forEach(ch=>setOp(ch,bop*(1-.3*gg)));
+  setTint(GARDEN,new THREE.Color(1,1,1));
+  let near=false;const now=performance.now();
+  FLW.forEach((f,i)=>{const d=f.userData;let s=d.born!==null?ss(0,1,(now-d.born)/1300)*(1+.15*Math.sin(Math.min(1,(now-d.born)/1300)*Math.PI)):ss(d.th,d.th+.12,pb);
+    f.visible=s>.002;if(!f.visible)return;f.scale.setScalar(s*d.base*2.4);
+    const [x,y]=projectEl(f.position,BR);const dd=Math.hypot(x-mxp,y-myp);const want=Math.exp(-(dd*dd)/(120*120));if(want>.5)near=true;d.w+=(want-d.w)*.12;
+    const sw=.06*Math.sin(t*.0012+i)+d.w*.55*Math.sin(t*.012+i*1.7);etmp.set(sw,0,d.w*.4*Math.cos(t*.009+i));qtmp.setFromEuler(etmp);f.quaternion.copy(d.q0).multiply(qtmp)});
+  return near}
+function growAt(x,y){let best=null,bd=90;const v=new THREE.Vector3();for(let i=0;i<SURF.length;i++){v.copy(SURF[i]);BR.localToWorld(v);v.project(cam);const sx=(v.x*.5+.5)*innerWidth,sy=(-v.y*.5+.5)*innerHeight;const d=Math.hypot(sx-x,sy-y);if(d<bd&&v.z<1){bd=d;best=SURF[i]}}
+  if(!best)return false;const p=best.clone().addScaledVector(best.clone().sub(V(0,.05,0)).normalize(),-.015);
+  addFlower(p,(Math.random()*4)|0,(Math.random()*1e6)|0,performance.now(),(Math.random()*8)|0);
+  const extra=FLW.filter(f=>f.userData.born!==null);if(extra.length>70){const o=extra[0];GARDEN.remove(o);FLW.splice(FLW.indexOf(o),1)}
+  return true}
+let ACTIVE='';
+addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('button,a,#talkui'))return;
+  if(ACTIVE==='become'&&GARDEN)growAt(e.clientX,e.clientY);
+  else if(['reveal','bond','future'].includes(ACTIVE)){const i=trapAt(e.clientX,e.clientY);if(i>=0)TRAPST[i].hold=performance.now()+1600}});
+
 // camera keyframes
 const K={
   hero:{p:V(0,.1,7.5),l:V(0,0,0)},
@@ -968,6 +1040,7 @@ function frame(t){
   // text blocks
   blks.forEach(b=>{const p=P[b.dataset.s];const on=p>=+b.dataset.a&&p<=+b.dataset.b&&b.dataset.s===A;b.classList.toggle('on',on)});
   if(A!=='how'&&HOW&&HOW.dirty){howReset();HOW.dirty=false}
+  ACTIVE=A;
   const brainWorld=['hero','mind','input','two','become'].includes(A);
   let fade=0;
   let target,look;
@@ -981,7 +1054,7 @@ function frame(t){
     else if(A==='input'){target=lerpV(K.mindB.p,K.input.p,ss(0,.4,pi));look=lerpV(K.mindB.l,K.input.l,ss(0,.4,pi));streamOp=ss(.05,.3,pi);tint.setRGB(lerp(1,1.7,ss(.1,.7,pi)),lerp(1,.5,ss(.1,.7,pi)),lerp(1,.55,ss(.1,.7,pi)))}
     else if(A==='two'){target=lerpV(K.input.p,K.two.p,ss(0,.25,pt));look=lerpV(K.input.l,K.two.l,ss(0,.25,pt));brainOp=1-ss(.02,.2,pt);tL=ss(.15,.35,pt);tR=ss(.35,.55,pt);streamOp=1-ss(0,.15,pt);tint.setRGB(1.7,.5,.55)}
     else if(A==='become'){target=lerpV(K.two.p,K.become.p,ss(-.2,.25,pb));look=K.become.l;brainOp=ss(-.25,.1,pb);tL=1-ss(-.25,.05,pb);tR=1-ss(-.2,.1,pb);tint.setRGB(.7,1.25,1.05);fade=ss(.88,1,pb)}
-    setOp(BR,brainOp);setTint(BR,tint);setOp(THL,tL);setOp(THR,tR);setOp(STREAM.obj,streamOp);setOp(STREAM.lines,streamOp);setOp(PATHLINE,pathOp*brainOp);
+    setOp(BR,brainOp);setTint(BR,tint);setOp(THL,tL);setOp(THR,tR);setOp(STREAM.obj,streamOp);setOp(STREAM.lines,streamOp);setOp(PATHLINE,pathOp*brainOp);{const nr=gardenFrame(A,pb,t,brainOp);document.body.style.cursor=nr?'pointer':''}
     THL.position.set(-1.15,-.02,0);THR.position.set(1.15,-.02,0);
     BR.rotation.y=-.5+Math.sin(t*.00025)*.08+mx*.15;BR.rotation.x=.08+my*.08;
     THL.rotation.y=THR.rotation.y=-.5+Math.sin(t*.0003)*.1;
@@ -1022,6 +1095,7 @@ function frame(t){
     else if(A==='bond'){target=lerpV(KH.seed.p,K.bond.p,ss(0,.4,pd));look=lerpV(KH.seed.l,K.bond.l,ss(0,.4,pd))}
     else {target=lerpV(K.bond.p,K.future.p,ss(0,.6,pf));look=lerpV(K.bond.l,K.future.l,ss(0,.6,pf));fade=A==='src'?.75:0}
     if(PLANT){PLANT.rotation.y=.03+Math.sin(t*.0004)*.03;PLANT.rotation.z=Math.sin(t*.0007)*.008}
+    {const hv=trapFrame(['reveal','bond','future'].includes(A),performance.now());document.body.style.cursor=hv>=0?'pointer':''}
   }
   if(!target){target=K.hero.p;look=K.hero.l}
   // parallax
@@ -1034,7 +1108,7 @@ function frame(t){
 // ---------- boot: build progressively so the page appears fast ----------
 const nf=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
 (async()=>{
-  await nf();buildBrain();buildGrow();
+  await nf();buildBrain();buildGrow();buildBrainGarden();
   const at=new URLSearchParams(location.search).get('at');
   if(at){const s=secs.find(x=>x.dataset.s===at.split(':')[0]);const f=+(at.split(':')[1]||.5);const y=s.offsetTop+(s.offsetHeight-innerHeight)*f;sTarget=sCur=y}
   requestAnimationFrame(frame);
