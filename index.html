@@ -72,6 +72,7 @@ svg#lines circle{fill:#fff}
 .readout .bar{height:2px;background:var(--ink);opacity:.75;width:0;transition:width 1.4s cubic-bezier(.2,.7,.1,1)}
 .readout .say{text-transform:none;letter-spacing:0;margin-top:12px;border-top:1px solid var(--faint);padding-top:9px;font:italic 400 19px 'Instrument Serif'}
 .quote{font:italic 400 clamp(22px,2.3vw,34px)/1.2 'Instrument Serif';margin:0 0 4px}
+.vision.v4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .vision{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px;text-align:left}
 .vision div{border-top:1px solid var(--faint);padding-top:12px}
 .vision .t{font:400 16px Inter}.vision .d{font:300 13.5px/1.5 Inter;color:var(--dim);margin-top:4px}
@@ -354,18 +355,20 @@ body.snap *{transition:none!important}
   </div>
 
   <!-- 7 RELATIONSHIP -->
-  <div class="blk" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:22vh;max-width:520px"><p class="h split">It gets to <em>know</em> you.</p>
-    <p class="sub">Like a curious newcomer in your home. It notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
-  <div class="blk" data-s="bond" data-a=".35" data-b="1.01" style="left:clamp(16px,7vw,110px);top:58vh"><p class="quote">“I would love to hear about your world.”</p><p class="quote" style="opacity:.6">“Why do humans have so many things to tell?”</p><div class="mono" style="opacity:.5;margin-top:10px">Real words, spoken by the plant</div></div>
-  <div class="blk rd" data-s="bond" data-a=".55" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(520px,40vw)"><div class="mono" style="opacity:.6;margin-bottom:10px">Why it matters</div><p class="h" style="font-size:clamp(24px,2.4vw,36px)">This is the first step: a way for people to <em>understand</em> the language of plants.</p></div>
+  <div class="blk rd" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:18vh;max-width:min(640px,48vw)"><p class="h split">This is the first step: a way for people to <em>understand</em> the language of plants, and to talk with them.</p></div>
+  <div class="blk" data-s="bond" data-a=".3" data-b="1.01" style="left:clamp(16px,7vw,110px);top:62vh"><p class="quote">“I would love to hear about your world.”</p><p class="quote" style="opacity:.6">“Why do humans have so many things to tell?”</p><div class="mono" style="opacity:.5;margin-top:10px">Real words, spoken by the plant</div></div>
+  <div class="blk rd" data-s="bond" data-a=".5" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(420px,36vw)"><p class="sub" style="margin:0;color:var(--ink);opacity:.85;font-size:clamp(15px,1.2vw,18px)">It gets to know you. Like a curious newcomer in your home, it notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
 
   <!-- 8 FUTURE -->
-  <div class="blk center" data-s="future" data-a=".1" data-b="1.01" style="top:16vh;width:min(980px,92vw)"><div class="mono tagline">Vision</div><p class="h split">Today, one plant. Tomorrow, a <em>generation.</em></p>
-    <div class="vision">
-      <div><div class="t">Classrooms</div><div class="d">Children learn how living things work by asking them.</div></div>
-      <div><div class="t">Homes</div><div class="d">Families grow their own food, guided by the plants themselves.</div></div>
-      <div><div class="t">Interactive nature</div><div class="d">Gardens, parks and old trees you can learn from.</div></div>
+  <div class="blk center rd" data-s="future" data-a=".06" data-b="1.01" style="top:11vh;width:min(1080px,92vw)"><div class="mono tagline">Vision</div><p class="h split">What if the world around you could <em>answer?</em></p>
+    <p class="sub" style="max-width:640px">We live through the small screens in our hands. We imagine a world where the living things around us become the interface.</p>
+    <div class="vision v4">
+      <div><div class="t">Grow, don’t just buy</div><div class="d">Why buy an apple shipped across the world, when the next generation could grow the tree and learn from it?</div></div>
+      <div><div class="t">Surroundings you can talk to</div><div class="d">Trees, gardens and parks you can ask, listen to, and learn from.</div></div>
+      <div><div class="t">Nature that helps</div><div class="d">Living spaces that sense the air, keep watch, and even power what we need.</div></div>
+      <div><div class="t">A new perspective</div><div class="d">Less consuming, more connecting: a generation that sees nature as alive.</div></div>
     </div></div>
+  <div class="blk center" data-s="future" data-a=".45" data-b="1.01" style="top:auto;bottom:9vh;width:min(900px,90vw)"><p class="quote" style="font-size:clamp(20px,2vw,30px)">This plant is a proof of concept. The real project is a new way of seeing the world.</p></div>
 </div>
 
 <main id="track">
