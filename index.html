@@ -357,7 +357,7 @@ body.snap *{transition:none!important}
   <div class="blk" data-s="bond" data-a=".05" data-b="1.01" style="left:clamp(16px,7vw,110px);top:22vh;max-width:520px"><p class="h split">It gets to <em>know</em> you.</p>
     <p class="sub">Like a curious newcomer in your home. It notices how you care for it, remembers what you talk about, and wants to hear about your world.</p></div>
   <div class="blk" data-s="bond" data-a=".35" data-b="1.01" style="left:clamp(16px,7vw,110px);top:58vh"><p class="quote">“I would love to hear about your world.”</p><p class="quote" style="opacity:.6">“Why do humans have so many things to tell?”</p><div class="mono" style="opacity:.5;margin-top:10px">Real words, spoken by the plant</div></div>
-  <div class="blk" data-s="bond" data-a=".6" data-b="1.01" style="right:8vw;bottom:14vh"><div class="chip"><b>Next:</b> it will sense your touch and know when you are near.<span class="src">In development</span></div></div>
+  <div class="blk rd" data-s="bond" data-a=".55" data-b="1.01" style="right:8vw;bottom:12vh;max-width:min(520px,40vw)"><div class="mono" style="opacity:.6;margin-bottom:10px">Why it matters</div><p class="h" style="font-size:clamp(24px,2.4vw,36px)">This is the first step: a way for people to <em>understand</em> the language of plants.</p></div>
 
   <!-- 8 FUTURE -->
   <div class="blk center" data-s="future" data-a=".1" data-b="1.01" style="top:16vh;width:min(980px,92vw)"><div class="mono tagline">Vision</div><p class="h split">Today, one plant. Tomorrow, a <em>generation.</em></p>
@@ -1038,9 +1038,10 @@ function buildChick(){
     leg.add(L.build(0,40))}
   // ground that runs back into the distance: moss and grass, lit around the chick's path
   const G=new Cloud(),GL=new Lines();rs(1302);
-  for(let i=0;i<16000;i++){const x=(R()-.5)*1.4,z=.18-Math.pow(R(),.8)*1.3;const side=Math.exp(-z*z/.05)*Math.exp(-x*x/.35);const far=Math.max(0,Math.min(1,(-z+.05)/1.25))*.85+Math.pow(Math.abs(x)/.7,3)*.6;
+  const soft=(x,z)=>{const d=Math.hypot(x/.7,(z+.47)/.66);return Math.max(0,1-Math.max(0,(d-.45)/.55))**1.6};
+  for(let i=0;i<16000;i++){const x=(R()-.5)*1.4,z=.18-Math.pow(R(),.8)*1.3;if(R()>soft(x,z))continue;const side=Math.exp(-z*z/.05)*Math.exp(-x*x/.35);const far=Math.max(0,Math.min(1,(-z+.05)/1.25))*.85;
     G.add(x,(R()-.5)*.006,z,C('#16301a').lerp(C('#8fbf5a'),.25+.6*side*(1-far*.6)),1.3+R(),(.1+.45*side)*(1-far)*(.5+R()*.5))}
-  for(let i=0;i<2200;i++){const x=(R()-.5)*1.4,z=.18-Math.pow(R(),.8)*1.3;const side=Math.exp(-z*z/.05)*Math.exp(-x*x/.35);const far=Math.min(1,Math.max(0,Math.min(1,(-z+.05)/1.25))*.85+Math.pow(Math.abs(x)/.7,3)*.6);const h=.01+R()*.03;
+  for(let i=0;i<2200;i++){const x=(R()-.5)*1.4,z=.18-Math.pow(R(),.8)*1.3;if(R()>soft(x,z))continue;const side=Math.exp(-z*z/.05)*Math.exp(-x*x/.35);const far=Math.min(1,Math.max(0,Math.min(1,(-z+.05)/1.25))*.85+Math.pow(Math.abs(x)/.7,3)*.6);const h=.01+R()*.03;
     GL.seg(V(x,0,z),V(x+(R()-.5)*.01,h,z),C('#0c200e').multiplyScalar(.1),C('#b6f08a').multiplyScalar((.08+.4*side)*(1-far)))}
   for(let k=0;k<12;k++){const x=(R()-.5)*1.2,z=-.12-R()*.8;const col=C(['#fff2c0','#ffd24a','#ffffff'][k%3]);for(let i=0;i<12;i++)G.add(x+(R()-.5)*.012,.03+R()*.008,z+(R()-.5)*.012,col,1.5,.5)}
   const gp=G.build(0,40),gl=GL.build();gp.frustumCulled=gl.frustumCulled=false;root.add(gp,gl);
@@ -1053,7 +1054,7 @@ function chickFrame(A,P,t){
   // eye level: the patch sits low in the frame, the ground runs away from us
   const fwd=V(0,0,-1).applyQuaternion(cam.quaternion),right=V(1,0,0).applyQuaternion(cam.quaternion),up=V(0,1,0).applyQuaternion(cam.quaternion);
   const narrow=innerWidth/innerHeight<1;
-  CHICK.root.position.copy(cam.position).addScaledVector(fwd,2.6).addScaledVector(right,narrow?0:-.6).addScaledVector(up,-.5);
+  CHICK.root.position.copy(cam.position).addScaledVector(fwd,2.6).addScaledVector(right,narrow?0:-.6).addScaledVector(up,-.66);
   CHICK.root.quaternion.copy(cam.quaternion);CHICK.root.rotateX(.05);
   // walk toward the viewer with the scroll
   const w=ss(.91,1,pm);const x=lerp(-.45,.28,w);const ph=w*7*Math.PI*2;
